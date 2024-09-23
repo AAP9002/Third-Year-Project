@@ -1,5 +1,5 @@
 from utils.CameraHarness import CameraHarness
-from components.VideoWindow import VideoWindow
+from utils.VideoWindow import VideoWindow
 
 print("#"*10, "Camera System", "#"*10)
 
