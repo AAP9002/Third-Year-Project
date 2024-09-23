@@ -1,13 +1,13 @@
 import cv2
 
 class FrameFileHandler:
-    def __init__(self, cameraInstance, savePath='output.mp4' ):
+    def __init__(self, target_width, target_height, FPS, savePath='output.mp4' ):
         fourcc = cv2.VideoWriter_fourcc(*'mp4v')
         self.out = cv2.VideoWriter(
             savePath,
             fourcc,
-            cameraInstance.FPS, 
-            (cameraInstance.frame_width, cameraInstance.frame_height)
+            FPS, 
+            (target_width, target_height)
             )
         self.current_frame_number = 0
 
