@@ -1,1 +1,3 @@
 /local-venv
+*/**/*.mp4
+*/**/__pycache__
