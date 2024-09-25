@@ -9,7 +9,10 @@
 - Considered how to label the data
 - Created a JIRA Chart and Github REPO
 
-### 29-09-2024
+### 23-09-2024
 - set up python venv
 - Added a single camera video window
 - Enabled recording a video with a single camera @ 30fps
+- Added function to merge four cameras into one frame
+
+### 24-09-2024
