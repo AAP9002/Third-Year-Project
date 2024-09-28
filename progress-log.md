@@ -10,9 +10,22 @@
 - Created a JIRA Chart and Github REPO
 
 ### 23-09-2024
-- set up python venv
+- Set up python venv
 - Added a single camera video window
 - Enabled recording a video with a single camera @ 30fps
 - Added function to merge four cameras into one frame
 
-### 24-09-2024
+### 25-09-2024
+- Decided on main goals and additional goals for project
+- Complied finding so far, and layed out  an initial approach
+- Prepared for first supervisor meeting
+  
+### 26-09-2024
+- Presented idea in first supervisor meeting
+- Looked into [The Computational Shared Facility (CSF)](https://research-it.manchester.ac.uk/services/the-computational-shared-facility-csf/)
+- Looked into UoM Inventory store
+
+### 28-09-2024
+- Created latex report boilerplate
+- Looked into Visual Ordementry in place of GPS data
+- Looked into Teseract to extract metadata from dashcam video
