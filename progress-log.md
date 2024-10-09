@@ -29,3 +29,22 @@
 - Created latex report boilerplate
 - Looked into Visual Ordementry in place of GPS data
 - Looked into Teseract to extract metadata from dashcam video
+
+
+### 30-09-24
+- Started to work on lane detection
+- Researched existing pipelines
+- Researched alternate ways to gather trajectory
+
+### 01-10-24
+- Added smoothing, Adaptive thesholding, Canny edge and Hough lines
+- Compared and tested different masking and thesholding methods
+
+### 04-10-24
+- Compared and queried for cameras and data
+
+### 05-10-24
+- Selected relevant research papers for lane detection
+- Started to write report on lane detection
+
+
