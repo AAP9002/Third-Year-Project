@@ -30,13 +30,22 @@ def get_image_grid(image_array, row_length = 3):
     return output_image
 
 # get image
-originalImage = cv2.imread('./lane_detection_7.jpeg', cv2.IMREAD_GRAYSCALE)
+coloured = cv2.imread('./lane_detection_1.jpeg')
+
+originalImage = cv2.imread('./lane_detection_1.jpeg', cv2.IMREAD_GRAYSCALE)
 image = copy.deepcopy(originalImage)
 
 
 def run_pipeline(image):
+    whiteMasked = ImageMasks.maskByColour(coloured, np.array([0, 0, 150]), np.array([180, 50, 255]))
+    image = copy.deepcopy(whiteMasked)
+
+    # ImageMasks.maskImageAboveY(image,520)
+
     # smoothing
-    SmoothingMethods.GaussianBlur(image)
+    SmoothingMethods.applyClosing(image)
+    closed = copy.deepcopy(image)
+
 
     # threshold for white
     ThresholdMethods.adaptiveThesholding(image)
@@ -45,11 +54,11 @@ def run_pipeline(image):
     edge = EdgeDetectors.applyCanny(image)
 
     # Apply hough lines
-    line_image = LineMethods.applyHoughLines(edge)
+    line_image = LineMethods.applyHoughLines(edge, minLineLength=100)
     hough = cv2.addWeighted(originalImage, 0.8, line_image, 1, 1)
 
     # build output image
-    outputImage = get_image_grid([originalImage, image, edge, hough], row_length = 2)
+    outputImage = get_image_grid([originalImage, whiteMasked,closed, image, edge, hough] , row_length = 2)
 
     cv2.imshow(WINDOW_NAME, outputImage)
 
