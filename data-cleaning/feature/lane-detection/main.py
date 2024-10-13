@@ -1,7 +1,6 @@
 import copy
 import cv2
 import numpy as np
-import math
 
 from actions.ImageMasks import ImageMasks
 from actions.SmoothingMethods import SmoothingMethods
@@ -30,9 +29,9 @@ def get_image_grid(image_array, row_length = 3):
     return output_image
 
 # get image
-coloured = cv2.imread('./lane_detection_1.jpeg')
+coloured = cv2.imread('./lane_detection_7.jpeg')
 
-originalImage = cv2.imread('./lane_detection_1.jpeg', cv2.IMREAD_GRAYSCALE)
+originalImage = cv2.imread('./lane_detection_7.jpeg', cv2.IMREAD_GRAYSCALE)
 image = copy.deepcopy(originalImage)
 
 
@@ -41,6 +40,7 @@ def run_pipeline(image):
     image = copy.deepcopy(whiteMasked)
 
     # ImageMasks.maskImageAboveY(image,520)
+    # ImageMasks.maskImageBelowY(image,880)
 
     # smoothing
     SmoothingMethods.applyClosing(image)
@@ -62,6 +62,11 @@ def run_pipeline(image):
 
     cv2.imshow(WINDOW_NAME, outputImage)
 
-run_pipeline(image)
 
-cv2.waitKey(0)
+while(True):
+    run_pipeline(image)
+    k = cv2.waitKey(33)
+    if k==27: # Esc key
+        break # stop
+    elif k == 39: # right
+        pass # next image
