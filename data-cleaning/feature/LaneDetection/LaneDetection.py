@@ -14,15 +14,17 @@ cv2.namedWindow(WINDOW_NAME, cv2.WINDOW_NORMAL)
 
 class LaneDetection:
     def run_pipeline(coloured_image):
-        SmoothingMethods.GaussianBlur(coloured_image, (25, 25))
+        # SmoothingMethods.GaussianBlur(coloured_image, (25, 25))
 
         whiteMasked = ImageMasks.maskByColour(coloured_image, np.array([0, 0, 150]), np.array([180, 50, 255]))
+        orangeMasked = ImageMasks.maskByColour(coloured_image, np.array([3, 90, 127]), np.array([33, 190, 227]))
+        colourMasked = cv2.bitwise_or(whiteMasked, orangeMasked)
 
-        image = copy.deepcopy(whiteMasked)
+        image = copy.deepcopy(colourMasked)
         black_and_white_image = cv2.cvtColor(coloured_image, cv2.COLOR_BGR2GRAY)
 
-        # threshold sky
-        sky_y = ImageMasks.get_histogram_of_white_by_y_axis(whiteMasked)
+        # threshold sky  
+        sky_y = ImageMasks.get_sky_y_axis(black_and_white_image)
         ImageMasks.maskImageAboveY(image, sky_y)
         # draw skyline
         cv2.line(image, (0, sky_y), (image.shape[1], sky_y), (0, 0, 255), 2)
@@ -40,6 +42,7 @@ class LaneDetection:
         # compare against standard adaptive thresholding
         standard_adaptive = copy.deepcopy(black_and_white_image)
         ThresholdMethods.adaptiveThesholding(standard_adaptive)
+        ImageMasks.maskImageAboveY(standard_adaptive, sky_y)
 
 
         # Applying the Canny Edge filter 
@@ -55,5 +58,5 @@ class LaneDetection:
         standard_adaptive_hough = cv2.addWeighted(standard_adaptive_hough, 0.8, standard_adaptive_line_image, 1, 1)
 
         # build output image
-        outputImage = get_image_grid([black_and_white_image, whiteMasked,closed, image, edge, hough, standard_adaptive, standard_adaptive_hough] , row_length = 2)
+        outputImage = get_image_grid([black_and_white_image, colourMasked,closed, image, edge, hough, standard_adaptive, standard_adaptive_hough] , row_length = 2)
         return outputImage

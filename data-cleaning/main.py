@@ -4,15 +4,26 @@ import copy
 import feature.LaneDetection.LaneDetection as LaneDetection
 import Capture.VideoFrameHandler as VideoFrameHandler
 
+cv2.namedWindow("Original", cv2.WINDOW_NORMAL)
+
 # VideoFrameHandler = VideoFrameHandler.VideoFrameHandler('../data/Harard Warning Lights.mp4')
-VideoFrameHandler = VideoFrameHandler.VideoFrameHandler('../data/10 sec video 1 mototrway crash h.264.mp4')
+# VideoFrameHandler = VideoFrameHandler.VideoFrameHandler('../data/10 sec video 1 mototrway crash h.264.mp4')
+VideoFrameHandler = VideoFrameHandler.VideoFrameHandler('../data/20241004_182941000_iOS.mp4')
+
+
+def set_frame(frame_number:int):
+    global coloured
+    coloured = VideoFrameHandler.get_frame(frame_number)
+
 # get image
 coloured = VideoFrameHandler.get_frame(0)
 
 play_video = True
 
 while(True):
-    laneDetectionProcess = LaneDetection.LaneDetection.run_pipeline(coloured)
+    cv2.imshow("Original", coloured)
+
+    laneDetectionProcess = LaneDetection.LaneDetection.run_pipeline(copy.deepcopy(coloured))
     cv2.imshow("Lane Marking Detector", laneDetectionProcess)
 
     if play_video:
