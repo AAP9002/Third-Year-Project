@@ -14,9 +14,18 @@ cv2.namedWindow(WINDOW_NAME, cv2.WINDOW_NORMAL)
 
 class LaneDetection:
     def run_pipeline(coloured_image):
+        SmoothingMethods.GaussianBlur(coloured_image, (25, 25))
+
         whiteMasked = ImageMasks.maskByColour(coloured_image, np.array([0, 0, 150]), np.array([180, 50, 255]))
+
         image = copy.deepcopy(whiteMasked)
         black_and_white_image = cv2.cvtColor(coloured_image, cv2.COLOR_BGR2GRAY)
+
+        # threshold sky
+        sky_y = ImageMasks.get_histogram_of_white_by_y_axis(whiteMasked)
+        ImageMasks.maskImageAboveY(image, sky_y)
+        # draw skyline
+        cv2.line(image, (0, sky_y), (image.shape[1], sky_y), (0, 0, 255), 2)
 
         # ImageMasks.maskImageAboveY(image,520)
         # ImageMasks.maskImageBelowY(image,880)

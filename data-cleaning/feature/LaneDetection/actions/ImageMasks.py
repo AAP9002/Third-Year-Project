@@ -1,5 +1,6 @@
 import cv2
-
+import numpy as np
+import matplotlib.pyplot as plt
 
 class ImageMasks:
     def maskImageAboveY(image:cv2.typing.MatLike, y_index:int):
@@ -28,3 +29,10 @@ class ImageMasks:
         hsv = cv2.cvtColor(bgr_image, cv2.COLOR_BGR2HSV)
         mask = cv2.inRange(hsv, lower_range, upper_range)
         return mask
+    
+    def get_histogram_of_white_by_y_axis(BinaryImage):
+        sum_y_axis = np.sum(BinaryImage, axis=1)
+        average_of_white_per_row = sum_y_axis // BinaryImage.shape[1]
+        return np.argmax(average_of_white_per_row < 150)
+
+        
