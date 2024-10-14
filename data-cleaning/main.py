@@ -4,7 +4,8 @@ import copy
 import feature.LaneDetection.LaneDetection as LaneDetection
 import Capture.VideoFrameHandler as VideoFrameHandler
 
-VideoFrameHandler = VideoFrameHandler.VideoFrameHandler('../data/Harard Warning Lights.mp4')
+# VideoFrameHandler = VideoFrameHandler.VideoFrameHandler('../data/Harard Warning Lights.mp4')
+VideoFrameHandler = VideoFrameHandler.VideoFrameHandler('../data/10 sec video 1 mototrway crash h.264.mp4')
 # get image
 coloured = VideoFrameHandler.get_frame(0)
 
