@@ -1,5 +1,6 @@
 import cv2
-
+import numpy as np
+import matplotlib.pyplot as plt
 
 class ImageMasks:
     def maskImageAboveY(image:cv2.typing.MatLike, y_index:int):
@@ -28,3 +29,19 @@ class ImageMasks:
         hsv = cv2.cvtColor(bgr_image, cv2.COLOR_BGR2HSV)
         mask = cv2.inRange(hsv, lower_range, upper_range)
         return mask
+    
+    def get_sky_y_axis(Image):
+        _, OTSU_threshold_image = cv2.threshold(Image, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+        print(OTSU_threshold_image)
+        sum_y_axis = np.sum(OTSU_threshold_image, axis=1)
+        average_of_white_per_row = sum_y_axis // OTSU_threshold_image.shape[1]
+
+        # reverse to search bottom up
+        reversed_avg = average_of_white_per_row[::-1]
+        
+        # Find the first row where the white pixel count drops significantly
+        bottom_up_index = np.argmax(reversed_avg > 130)
+        
+        # convert back to top down
+        return len(average_of_white_per_row) - bottom_up_index - 1
+        

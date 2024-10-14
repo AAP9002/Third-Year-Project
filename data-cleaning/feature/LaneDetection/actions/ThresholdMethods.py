@@ -21,3 +21,11 @@ class ThresholdMethods:
                 CONSTANT,
                 image
             )
+        
+    def otsuThreshold(image:cv2.typing.MatLike):
+        """apply otsu thresholding to image
+
+        Args:
+            image (cv2.typing.MatLike): image passed by reference
+        """
+        cv2.threshold(image, 0, MAX_THRESHOLD_VALUE, cv2.THRESH_BINARY + cv2.THRESH_OTSU, image)

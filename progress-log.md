@@ -48,3 +48,23 @@
 - Started to write report on lane detection
 
 
+### 07-10-24
+- Researched vanishing points
+- Looked into probabilistic lane detection (Kalman filter?)
+- Added thesholding by colour
+
+### 10-10-24
+- Enabled lane detection on video
+- Added video controls
+- Started to work on adjustable controls
+- Added sky line detection and masking
+
+### 13-10-24
+- Created an OCR script for video metadata
+- Applied image processing to frames to reduce noise for OCR
+- Experimented with Tesseract
+- Experimented with metadata extraction
+
+### 14-10-24
+- Prepared for supervisor meeting
+- Considering sliding windows on end of short detected lanes?
