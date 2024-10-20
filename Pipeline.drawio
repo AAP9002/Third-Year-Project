@@ -11,7 +11,7 @@
           <mxGeometry x="265" y="80" width="150" height="560" as="geometry" />
         </mxCell>
         <mxCell id="pGTYzzwHC-1MCCBXsBp7-29" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
-          <mxGeometry x="20" y="80" width="150" height="560" as="geometry" />
+          <mxGeometry x="15" y="80" width="150" height="560" as="geometry" />
         </mxCell>
         <mxCell id="pGTYzzwHC-1MCCBXsBp7-4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="pGTYzzwHC-1MCCBXsBp7-2" target="pGTYzzwHC-1MCCBXsBp7-3">
           <mxGeometry relative="1" as="geometry" />
@@ -55,11 +55,11 @@
         <mxCell id="pGTYzzwHC-1MCCBXsBp7-16" value="Increment steps to detect further" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
           <mxGeometry x="280" y="350" width="120" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="pGTYzzwHC-1MCCBXsBp7-23" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="pGTYzzwHC-1MCCBXsBp7-18" target="pGTYzzwHC-1MCCBXsBp7-19">
+        <mxCell id="pGTYzzwHC-1MCCBXsBp7-35" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="pGTYzzwHC-1MCCBXsBp7-18" target="pGTYzzwHC-1MCCBXsBp7-34">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="pGTYzzwHC-1MCCBXsBp7-18" value="Vanishing Point Voting" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
-          <mxGeometry x="280" y="510" width="120" height="60" as="geometry" />
+          <mxGeometry x="280" y="440" width="120" height="60" as="geometry" />
         </mxCell>
         <mxCell id="pGTYzzwHC-1MCCBXsBp7-21" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="pGTYzzwHC-1MCCBXsBp7-19" target="pGTYzzwHC-1MCCBXsBp7-20">
           <mxGeometry relative="1" as="geometry" />
@@ -85,8 +85,14 @@
         <mxCell id="pGTYzzwHC-1MCCBXsBp7-26" value="Train neural network with labeled data" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
           <mxGeometry x="560" y="450" width="120" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="pGTYzzwHC-1MCCBXsBp7-32" value="Test Model" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+        <mxCell id="pGTYzzwHC-1MCCBXsBp7-32" value="Test model" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
           <mxGeometry x="560" y="550" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="pGTYzzwHC-1MCCBXsBp7-36" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="pGTYzzwHC-1MCCBXsBp7-34" target="pGTYzzwHC-1MCCBXsBp7-19">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="pGTYzzwHC-1MCCBXsBp7-34" value="ROI Clipping" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="280" y="530" width="120" height="60" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
