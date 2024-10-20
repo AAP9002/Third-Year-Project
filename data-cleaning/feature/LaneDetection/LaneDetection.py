@@ -59,4 +59,6 @@ class LaneDetection:
 
         # build output image
         outputImage = get_image_grid([black_and_white_image, colourMasked,closed, image, edge, hough, standard_adaptive, standard_adaptive_hough] , row_length = 2)
-        return outputImage
+        cv2.imshow("Lane Marking Detector", outputImage)
+
+        return standard_adaptive_line_image
