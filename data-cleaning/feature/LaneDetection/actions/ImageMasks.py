@@ -32,7 +32,6 @@ class ImageMasks:
     
     def get_sky_y_axis(Image):
         _, OTSU_threshold_image = cv2.threshold(Image, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-        print(OTSU_threshold_image)
         sum_y_axis = np.sum(OTSU_threshold_image, axis=1)
         average_of_white_per_row = sum_y_axis // OTSU_threshold_image.shape[1]
 
