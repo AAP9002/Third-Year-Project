@@ -1,9 +1,93 @@
 <mxfile host="app.diagrams.net" agent="Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:131.0) Gecko/20100101 Firefox/131.0" version="24.8.0">
   <diagram name="Page-1" id="aUg4efNbcIluYCmne4yZ">
-    <mxGraphModel>
+    <mxGraphModel dx="1381" dy="790" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
+        <mxCell id="pGTYzzwHC-1MCCBXsBp7-31" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="545" y="80" width="150" height="560" as="geometry" />
+        </mxCell>
+        <mxCell id="pGTYzzwHC-1MCCBXsBp7-30" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="265" y="80" width="150" height="560" as="geometry" />
+        </mxCell>
+        <mxCell id="pGTYzzwHC-1MCCBXsBp7-29" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="20" y="80" width="150" height="560" as="geometry" />
+        </mxCell>
+        <mxCell id="pGTYzzwHC-1MCCBXsBp7-4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="pGTYzzwHC-1MCCBXsBp7-2" target="pGTYzzwHC-1MCCBXsBp7-3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="pGTYzzwHC-1MCCBXsBp7-2" value="Raw File" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;" vertex="1" parent="1">
+          <mxGeometry x="60" y="140" width="60" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="pGTYzzwHC-1MCCBXsBp7-8" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="pGTYzzwHC-1MCCBXsBp7-3" target="pGTYzzwHC-1MCCBXsBp7-7">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="pGTYzzwHC-1MCCBXsBp7-3" value="Extract GPS and MPH per frame" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="30" y="270" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="pGTYzzwHC-1MCCBXsBp7-11" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="pGTYzzwHC-1MCCBXsBp7-7" target="pGTYzzwHC-1MCCBXsBp7-10">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="pGTYzzwHC-1MCCBXsBp7-7" value="Represent Trajectory" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="30" y="380" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="pGTYzzwHC-1MCCBXsBp7-15" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="pGTYzzwHC-1MCCBXsBp7-10" target="pGTYzzwHC-1MCCBXsBp7-12">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="pGTYzzwHC-1MCCBXsBp7-10" value="Clip videos to uniform run ups and Labels" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="30" y="490" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="pGTYzzwHC-1MCCBXsBp7-14" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="pGTYzzwHC-1MCCBXsBp7-12" target="pGTYzzwHC-1MCCBXsBp7-13">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="pGTYzzwHC-1MCCBXsBp7-12" value="Camera calibration" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="280" y="150" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="pGTYzzwHC-1MCCBXsBp7-17" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="1" source="pGTYzzwHC-1MCCBXsBp7-13" target="pGTYzzwHC-1MCCBXsBp7-16">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="pGTYzzwHC-1MCCBXsBp7-13" value="Short Range Lane Detection" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="280" y="250" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="pGTYzzwHC-1MCCBXsBp7-22" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="pGTYzzwHC-1MCCBXsBp7-16" target="pGTYzzwHC-1MCCBXsBp7-18">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="pGTYzzwHC-1MCCBXsBp7-16" value="Increment steps to detect further" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="280" y="350" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="pGTYzzwHC-1MCCBXsBp7-23" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="pGTYzzwHC-1MCCBXsBp7-18" target="pGTYzzwHC-1MCCBXsBp7-19">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="pGTYzzwHC-1MCCBXsBp7-18" value="Vanishing Point Voting" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="280" y="510" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="pGTYzzwHC-1MCCBXsBp7-21" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="pGTYzzwHC-1MCCBXsBp7-19" target="pGTYzzwHC-1MCCBXsBp7-20">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="pGTYzzwHC-1MCCBXsBp7-19" value="Select Features" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="560" y="150" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="pGTYzzwHC-1MCCBXsBp7-25" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="pGTYzzwHC-1MCCBXsBp7-20" target="pGTYzzwHC-1MCCBXsBp7-24">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="pGTYzzwHC-1MCCBXsBp7-20" value="Track Features between Frames" style="whiteSpace=wrap;html=1;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="560" y="250" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="pGTYzzwHC-1MCCBXsBp7-27" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="1" source="pGTYzzwHC-1MCCBXsBp7-24" target="pGTYzzwHC-1MCCBXsBp7-26">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="pGTYzzwHC-1MCCBXsBp7-24" value="Represent change in x in vector" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="560" y="350" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="pGTYzzwHC-1MCCBXsBp7-33" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="1" source="pGTYzzwHC-1MCCBXsBp7-26" target="pGTYzzwHC-1MCCBXsBp7-32">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="pGTYzzwHC-1MCCBXsBp7-26" value="Train neural network with labeled data" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="560" y="450" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="pGTYzzwHC-1MCCBXsBp7-32" value="Test Model" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="560" y="550" width="120" height="60" as="geometry" />
+        </mxCell>
       </root>
     </mxGraphModel>
   </diagram>
