@@ -9,10 +9,10 @@ import Capture.VideoFrameHandler as VideoFrameHandler
 cv2.namedWindow("Original", cv2.WINDOW_NORMAL)
 
 # VideoFrameHandler = VideoFrameHandler.VideoFrameHandler('../data/Know you-re protected 1080p webloop.mp4')
-VideoFrameHandler = VideoFrameHandler.VideoFrameHandler('../data/10 sec video 1 mototrway crash h.264.mp4')
+# VideoFrameHandler = VideoFrameHandler.VideoFrameHandler('../data/10 sec video 1 mototrway crash h.264.mp4')
 # VideoFrameHandler = VideoFrameHandler.VideoFrameHandler('../data/Harard Warning Lights.mp4')
 # VideoFrameHandler = VideoFrameHandler.VideoFrameHandler('../data/20241004_182941000_iOS.mp4')
-#
+VideoFrameHandler = VideoFrameHandler.VideoFrameHandler('../data/2022_0813_184754_009.MP4')
 
 def set_frame(frame_number:int):
     global coloured
@@ -21,7 +21,7 @@ def set_frame(frame_number:int):
 # get image
 coloured = VideoFrameHandler.get_frame(0)
 
-featureDetectionHandler = FeatureDetection.FeatureDetection()
+featureDetectionHandler = FeatureDetection.FeatureDetection(image_width=coloured.shape[1], image_height=coloured.shape[0])
 
 play_video = True
 
@@ -36,7 +36,8 @@ while(True):
     cv2.imshow("Original", processed_image)
 
     # apply sift
-    featureDetectionHandler.detect_features_by_SIFT(coloured)
+    sift_image = copy.deepcopy(coloured)
+    featureDetectionHandler.detect_features_by_SIFT(sift_image)
 
     if play_video:
         coloured = VideoFrameHandler.get_next_frame()
