@@ -3,15 +3,16 @@ import cv2
 import numpy as np
 import copy
 import feature.LaneDetection.LaneDetection as LaneDetection
+import feature.FeatureDetection.FeatureDetection as FeatureDetection
 import Capture.VideoFrameHandler as VideoFrameHandler
 
 cv2.namedWindow("Original", cv2.WINDOW_NORMAL)
 
 # VideoFrameHandler = VideoFrameHandler.VideoFrameHandler('../data/Know you-re protected 1080p webloop.mp4')
-VideoFrameHandler = VideoFrameHandler.VideoFrameHandler('../data/10 sec video 1 mototrway crash h.264.mp4')
-# VideoFrameHandler = VideoFrameHandler.VideoFrameHandler('../data/Harard Warning Lights.mp4')
+# VideoFrameHandler = VideoFrameHandler.VideoFrameHandler('../data/10 sec video 1 mototrway crash h.264.mp4')
+VideoFrameHandler = VideoFrameHandler.VideoFrameHandler('../data/Harard Warning Lights.mp4')
 # VideoFrameHandler = VideoFrameHandler.VideoFrameHandler('../data/20241004_182941000_iOS.mp4')
-
+#
 
 def set_frame(frame_number:int):
     global coloured
@@ -20,10 +21,11 @@ def set_frame(frame_number:int):
 # get image
 coloured = VideoFrameHandler.get_frame(0)
 
+featureDetectionHandler = FeatureDetection.FeatureDetection()
+
 play_video = True
 
 while(True):
-
     laneDetectionLine = LaneDetection.LaneDetection.run_pipeline(copy.deepcopy(coloured))
     # add lines in red to original image
     black_white_to_red = cv2.cvtColor(laneDetectionLine, cv2.COLOR_GRAY2BGR)
@@ -32,6 +34,9 @@ while(True):
     processed_image = cv2.addWeighted(processed_image, 0.8, black_white_to_red, 1, 1)
 
     cv2.imshow("Original", processed_image)
+
+    # apply sift
+    featureDetectionHandler.detect_features_by_SIFT(coloured)
 
     if play_video:
         coloured = VideoFrameHandler.get_next_frame()
