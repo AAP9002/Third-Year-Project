@@ -1,11 +1,11 @@
 import copy
-import re
 from turtle import width
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.neighbors import NearestNeighbors
 from .utils.ImageStacker import get_image_grid
+from .utils.VideoRecorder import VideoRecorder
 
 cv2.namedWindow("SIFT", cv2.WINDOW_NORMAL)
 
@@ -19,6 +19,7 @@ class FeatureDetection():
         self.image_width = image_width
         self.image_height = image_height
         self.output_image_step = []
+        self.video_recorder = VideoRecorder("feature_detection_output.avi", 10)
 
 
     def detect_features_by_SIFT(self, frame):
@@ -61,6 +62,7 @@ class FeatureDetection():
         image_layout = [self.output_image_step[0], self.output_image_step[5], self.output_image_step[4], self.output_image_step[1], self.output_image_step[2], self.output_image_step[3]]
         
         output_image = get_image_grid(image_layout, row_length=3)
+        self.video_recorder.record_frame(output_image)
         cv2.imshow("SIFT", output_image)
 
         return frame
