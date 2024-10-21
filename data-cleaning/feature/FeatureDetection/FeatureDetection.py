@@ -1,8 +1,11 @@
-import copy
+Simport copy
+import re
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
+from sklearn.neighbors import NearestNeighbors
+
 
 cv2.namedWindow("SIFT", cv2.WINDOW_NORMAL)
 cv2.namedWindow("SIFT Matches", cv2.WINDOW_NORMAL)
@@ -43,7 +46,7 @@ class FeatureDetection():
         if list_paired_points != None:
             predicted_vanishing_x_axis =  self.plot_x_differences(list_paired_points)
             print("Predicted vanishing point: ", predicted_vanishing_x_axis)
-            frame_copy = cv2.line(frame_copy, (int(predicted_vanishing_x_axis), 0), (int(predicted_vanishing_x_axis), frame_copy.shape[0]), (0, 255, 0), 2)
+            cv2.line(frame_copy, (int(predicted_vanishing_x_axis), 0), (int(predicted_vanishing_x_axis), frame_copy.shape[0]-2), (0, 255, 0), 3)
             cv2.imshow("Vanishing Point", frame_copy)
 
         return frame
@@ -70,18 +73,9 @@ class FeatureDetection():
 
         list_paired_points = []
         for match in matches:
-            # # ignore out of center 50% of the image x
-            # if kp1[match.queryIdx].pt[0] < frame.shape[1] * 0.25 or kp1[match.queryIdx].pt[0] > frame.shape[1] * 0.75:
-            #     continue
-            # # ignore out of center 50% of the image y
-            # if kp1[match.queryIdx].pt[1] < frame.shape[0] * 0.25 or kp1[match.queryIdx].pt[1] > frame.shape[0] * 0.75:
-            #     continue
-
             a = kp1[match.queryIdx]
             b = kp2[match.trainIdx]
             list_paired_points.append((a, b))
-
-        # print("Paired points: ", list_paired_points[0][0].pt, list_paired_points[0][1].pt)
 
         return list_paired_points
 
@@ -101,10 +95,20 @@ class FeatureDetection():
                 continue
 
             # center 70% of the image
-            
+            if x1 < 0.15 * self.image_width or x1 > 0.85 * self.image_width:
+                continue
 
             x_values.append(x1)
             x_differences.append(x1 - x2)
+
+        # filter for points with 5 closest neighbours
+        data = np.column_stack((x_values, x_differences))
+        neigh = NearestNeighbors(n_neighbors=15)
+        neigh.fit(data)
+        distances, indices = neigh.kneighbors(data)
+        indices = indices[distances[:, 4] < 30]
+        x_values = [x_values[i] for i in indices.flatten()]
+        x_differences = [x_differences[i] for i in indices.flatten()]
 
         # check neighbouring x values and mask out the outliers
         x_values = np.array(x_values)
@@ -118,14 +122,6 @@ class FeatureDetection():
 
         # line of best fit
         m, b = np.polyfit(x_values, x_differences, 1)
-
-        # 2d curve fitting
-        def func(x, a, b):
-            return a*x + b
-        
-        popt, _ = curve_fit(func, x_values, x_differences)
-        a, b = popt
-
 
         # Plotting the graph using matplotlib
         if self.SHOW_BEST_FIT_GRAPH:
