@@ -59,10 +59,13 @@ class FeatureDetection():
         if len(self.output_image_step) < 5:
             return frame
         
-        image_layout = [self.output_image_step[0], self.output_image_step[5], self.output_image_step[4], self.output_image_step[1], self.output_image_step[2], self.output_image_step[3]]
-        
-        output_image = get_image_grid(image_layout, row_length=3)
-        self.video_recorder.record_frame(output_image)
+        # image_layout = [self.output_image_step[0], self.output_image_step[5], self.output_image_step[4], self.output_image_step[1], self.output_image_step[2], self.output_image_step[3]]
+        image_layout = [self.output_image_step[0], self.output_image_step[5], self.output_image_step[4], self.output_image_step[3]]
+
+        output_image = get_image_grid(image_layout, row_length=2)
+
+        reduced_quality = cv2.resize(output_image, (int(output_image.shape[1] * 0.25), int(output_image.shape[0] * 0.25)))
+        self.video_recorder.record_frame(reduced_quality)
         cv2.imshow("SIFT", output_image)
 
         return frame
