@@ -41,10 +41,13 @@ class FeatureDetection():
 
         print("Number of features: ", len(kp))
         print("Number of features in buffer: ", len(self.feature_buffer_kp))
-        print("Number of feature pairs: ", len(self.get_feature_pairs()))
     
         list_paired_points = self.draw_feature_pairs(frame)
+
+        
         if list_paired_points != None:
+            print("Number of feature pairs: ", len(list_paired_points))
+
             predicted_vanishing_x_axis =  self.plot_x_differences(list_paired_points)
             print("Predicted vanishing point: ", predicted_vanishing_x_axis)
             cv2.line(frame_copy, (int(predicted_vanishing_x_axis), 0), (int(predicted_vanishing_x_axis), frame_copy.shape[0]-2), (0, 255, 0), 3)
@@ -59,14 +62,17 @@ class FeatureDetection():
         if len(self.output_image_step) < 5:
             return frame
         
+        print("Number of output images: ", len(self.output_image_step))
         # image_layout = [self.output_image_step[0], self.output_image_step[5], self.output_image_step[4], self.output_image_step[1], self.output_image_step[2], self.output_image_step[3]]
-        image_layout = [self.output_image_step[0], self.output_image_step[5], self.output_image_step[4], self.output_image_step[3]]
+        try:
+            image_layout = [self.output_image_step[0], self.output_image_step[5], self.output_image_step[4], self.output_image_step[3]]
+            output_image = get_image_grid(image_layout, row_length=2)
 
-        output_image = get_image_grid(image_layout, row_length=2)
-
-        reduced_quality = cv2.resize(output_image, (int(output_image.shape[1] * 0.25), int(output_image.shape[0] * 0.25)))
-        self.video_recorder.record_frame(reduced_quality)
-        cv2.imshow("SIFT", output_image)
+            reduced_quality = cv2.resize(output_image, (int(output_image.shape[1] * 0.25), int(output_image.shape[0] * 0.25)))
+            self.video_recorder.record_frame(reduced_quality)
+            cv2.imshow("SIFT", output_image)
+        except:
+            pass
 
         return frame
     
