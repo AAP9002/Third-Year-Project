@@ -1,3 +1,6 @@
 /local-venv
 */**/*.mp4
 */**/__pycache__
+*.MP4
+*.webm
+*.avi

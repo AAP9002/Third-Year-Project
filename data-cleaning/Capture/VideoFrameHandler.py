@@ -11,6 +11,7 @@ class VideoFrameHandler:
         self.frame_increment = self.fps // 10
 
     def get_frame(self, frame_number:int):
+        print("Getting frame: ", frame_number, " of ", self.totalFrames)
         self.currentFrame = frame_number
         self.cap.set(cv2.CAP_PROP_POS_FRAMES, frame_number)
         ret, frame = self.cap.read()

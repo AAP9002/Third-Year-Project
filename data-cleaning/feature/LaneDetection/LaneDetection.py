@@ -24,10 +24,10 @@ class LaneDetection:
         black_and_white_image = cv2.cvtColor(coloured_image, cv2.COLOR_BGR2GRAY)
 
         # threshold sky  
-        sky_y = ImageMasks.get_sky_y_axis(black_and_white_image)
-        ImageMasks.maskImageAboveY(image, sky_y)
+        # sky_y = ImageMasks.get_sky_y_axis(black_and_white_image)
+        # ImageMasks.maskImageAboveY(image, sky_y)
         # draw skyline
-        cv2.line(image, (0, sky_y), (image.shape[1], sky_y), (0, 0, 255), 2)
+        # cv2.line(image, (0, sky_y), (image.shape[1], sky_y), (0, 0, 255), 2)
 
         # ImageMasks.maskImageAboveY(image,520)
         # ImageMasks.maskImageBelowY(image,880)
@@ -42,7 +42,7 @@ class LaneDetection:
         # compare against standard adaptive thresholding
         standard_adaptive = copy.deepcopy(black_and_white_image)
         ThresholdMethods.adaptiveThesholding(standard_adaptive)
-        ImageMasks.maskImageAboveY(standard_adaptive, sky_y)
+        # ImageMasks.maskImageAboveY(standard_adaptive, sky_y)
 
 
         # Applying the Canny Edge filter 
@@ -58,7 +58,7 @@ class LaneDetection:
         standard_adaptive_hough = cv2.addWeighted(standard_adaptive_hough, 0.8, standard_adaptive_line_image, 1, 1)
 
         # build output image
-        outputImage = get_image_grid([black_and_white_image, colourMasked,closed, image, edge, hough, standard_adaptive, standard_adaptive_hough] , row_length = 2)
+        outputImage = get_image_grid([black_and_white_image, colourMasked,closed, image, edge, hough, standard_adaptive, standard_adaptive_hough] , row_length = 4)
         cv2.imshow("Lane Marking Detector", outputImage)
 
         return standard_adaptive_line_image
