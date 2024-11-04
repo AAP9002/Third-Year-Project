@@ -68,3 +68,16 @@
 ### 14-10-24
 - Prepared for supervisor meeting
 - Considering sliding windows on end of short detected lanes?
+
+### 26-10-24
+- Researched and set up stereo camera system
+- Researched gps data standards
+- Began parsing gps data from video metadata
+- Researched optical flow
+
+### 27-10-24
+- Added notebook for feature perception shifts (FPS) experiments
+- Modified existing code to handle new camera system
+- Improved performance of FPS experiments
+- Created a global VP detector
+- Began clipping around global VP for local VP detection
