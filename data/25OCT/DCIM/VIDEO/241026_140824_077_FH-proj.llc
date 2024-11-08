@@ -1,0 +1,11 @@
+{
+  version: 1,
+  mediaFileName: '241026_140824_077_FH.MP4',
+  cutSegments: [
+    {
+      start: 13.028548473486877,
+      end: 27.027,
+      name: '',
+    },
+  ],
+}
