@@ -12,7 +12,7 @@
 # 4. angle-based RANSAC
 # (RANdom SAmple Consensus) voting
 
-# In[1]:
+# In[ ]:
 
 
 import cv2
@@ -50,7 +50,7 @@ print(f'Output folder: {output_folder}')
 
 # ### Frame handling
 
-# In[3]:
+# In[ ]:
 
 
 def preprocess_frame(frame):
@@ -73,7 +73,7 @@ def get_frame(cap, frame_number):
 
 # # Video Builder
 
-# In[4]:
+# In[ ]:
 
 
 class VideoBuilder:
@@ -98,7 +98,7 @@ class VideoBuilder:
 # 
 # initialise motion detection parameters
 
-# In[5]:
+# In[ ]:
 
 
 # params for ShiTomasi corner detection
@@ -112,18 +112,19 @@ lk_params = dict( winSize  = (15, 15),
                   maxLevel = 2,
                   criteria = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 10, 0.03))
 
-# minimum displacement
+# TRACKING PARAMETERS
 MINIMUM_TRACKED_POINTS = 400
 MINIMUM_DISPLACEMENT = 1
-MAXIMUM_TRAJECTORY_LENGTH = 50
+MAXIMUM_TRAJECTORY_LENGTH = 30
+THRESHOLD_REMOVE_POINTS_ON_SIDE = 300
 
 # R-VP parameters
-THRESHOLD_REMOVE_SHORT_TRAJECTORIES = 20
+THRESHOLD_REMOVE_SHORT_TRAJECTORIES = 15
 
 
 # corner detection mask to select new points from a distance (Region of interest)
 
-# In[6]:
+# In[ ]:
 
 
 mask = np.ones((int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)), int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))), np.uint8)
@@ -141,7 +142,7 @@ plt.imshow(frame)
 # ### Corner Feature Detection
 # Detect corners using Shi-Tomasi corner detection algorithm.
 
-# In[7]:
+# In[ ]:
 
 
 all_corners = []
@@ -161,11 +162,11 @@ def get_points_of_frame(frame_number):
     return corners
 
 
-# ### Feature Tracking using Lucas-Kanade Optical Flow
+# # Feature Tracking using Lucas-Kanade Optical Flow
 
 # #### Output video of the motion vectors
 
-# In[8]:
+# In[ ]:
 
 
 # random colours to label different lines
@@ -202,10 +203,12 @@ def output_video_of_trajectories(frame_trajectories, filename):
     video.stop_recording()
 
 
+# ## Preprocessing Trajectory Helpers
+
 # #### Remove stationary points
 # Filter and remove points that are not moving more than Min_displacement
 
-# In[9]:
+# In[ ]:
 
 
 def filter_for_minimum_displacement(good_old, good_new):
@@ -223,17 +226,26 @@ def filter_for_minimum_displacement(good_old, good_new):
 # #### Clip max trajectory length
 # Hard limit length of a tracked point
 
-# In[10]:
+# In[ ]:
 
 
 def clip_max_trajectory(trajectory_list):
     return trajectory_list[-MAXIMUM_TRAJECTORY_LENGTH:]
 
 
-# #### Perform tracking
+# #### Remove points that are too close to the left and right edge of the frame
+
+# In[ ]:
+
+
+def point_is_at_left_right_edge(point, image_shape):
+    return point[0] < THRESHOLD_REMOVE_POINTS_ON_SIDE or point[0] > image_shape[1] - THRESHOLD_REMOVE_POINTS_ON_SIDE
+
+
+# ## Perform tracking
 # - Points over many consecutive frames are considered stable motion vectors
 
-# In[11]:
+# In[ ]:
 
 
 print("Processing frames for optical flow")
@@ -266,6 +278,10 @@ for i in range(1, total_number_of_frames):
         start_position = tuple(old.ravel())  # Use the original position as the key
         next_iterations_start_position = tuple(new.ravel())  # Use the new position as the key for the next iteration
 
+        # Check if the point is at the edge of the image
+        if point_is_at_left_right_edge(next_iterations_start_position, frame_gray.shape):
+            continue
+
         if start_position in trajectories:
             # Update tracked points with new position
             trajectories[start_position].append(new)
@@ -290,7 +306,7 @@ for i in range(1, total_number_of_frames):
 
 # #### Output video of all unprocessed trajectories
 
-# In[12]:
+# In[ ]:
 
 
 print(f'Outputting video with trajectories to {output_folder}/all_trajectories.avi')
@@ -299,7 +315,7 @@ output_video_of_trajectories(all_frame_trajectories, f'{output_folder}/all_traje
 
 # #### Display tracked points counts by frame
 
-# In[13]:
+# In[ ]:
 
 
 x = np.arange(0, total_number_of_frames)
@@ -319,7 +335,7 @@ plt.plot(x, y)
 # # R-VP Voting
 # Using RANSAC to find the best vanishing point
 
-# In[14]:
+# In[ ]:
 
 
 example_frame = 40
@@ -416,7 +432,7 @@ def find_vanishing_point(line_segments, iterations=500, threshold=10,  inlier_ra
     return best_vanishing_point, max_inliers
 
 
-# In[16]:
+# In[ ]:
 
 
 ransac_vectors = []
@@ -435,7 +451,7 @@ print("Vanishing Point:", vanishing_point)
 print("Number of Inliers:", inliers_count)
 
 
-# In[17]:
+# In[ ]:
 
 
 frame = get_frame_with_trajectories(example_frame, ignore_short_history_trajectories)
