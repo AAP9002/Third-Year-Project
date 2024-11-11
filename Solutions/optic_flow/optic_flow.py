@@ -12,13 +12,13 @@
 # 4. angle-based RANSAC
 # (RANdom SAmple Consensus) voting
 
-# In[26]:
+# In[56]:
 
 
 FLAG_OUTPUT_VIDEOS = True
 
 
-# In[4]:
+# In[57]:
 
 
 import cv2
@@ -26,21 +26,26 @@ import numpy as np
 import os
 import copy
 from matplotlib import pyplot as plt
+import pickle
+from multiprocessing import shared_memory, Pool
 
 # create temp folder
 if not os.path.exists('temp'):
     os.makedirs('temp')
 
 
-# In[5]:
+# In[58]:
 
 
-file = "test_15s_video.MP4"
+# file = "../../data/Dataset/unlabelled/Harard Warning Lights.mp4"
+# file = "test_15s_video.MP4"
+file = '2022_0813_191459_018.MP4'
 
 cap = cv2.VideoCapture(file)
 total_number_of_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
 
-file_name = file.split(".")[0]
+
+file_name = os.path.splitext(os.path.basename(file))[0]
 
 output_folder = "temp/" + file_name
 if not os.path.exists(output_folder):
@@ -56,7 +61,7 @@ print(f'Output folder: {output_folder}')
 
 # ### Frame handling
 
-# In[6]:
+# In[59]:
 
 
 def preprocess_frame(frame):
@@ -79,7 +84,7 @@ def get_frame(cap, frame_number):
 
 # # Video Builder
 
-# In[7]:
+# In[60]:
 
 
 class VideoBuilder:
@@ -104,11 +109,11 @@ class VideoBuilder:
 # 
 # initialise motion detection parameters
 
-# In[8]:
+# In[ ]:
 
 
 # params for ShiTomasi corner detection
-feature_params = dict( maxCorners = 500,
+feature_params = dict( maxCorners = 300,
                        qualityLevel = 0.3,
                        minDistance = 20,
                        blockSize = 7,)
@@ -122,7 +127,7 @@ lk_params = dict( winSize  = (15, 15),
 MINIMUM_TRACKED_POINTS = 400
 MINIMUM_DISPLACEMENT = 1
 MAXIMUM_TRAJECTORY_LENGTH = 30
-THRESHOLD_REMOVE_POINTS_ON_SIDE = 300
+THRESHOLD_REMOVE_POINTS_ON_SIDE = 200
 
 # R-VP parameters
 THRESHOLD_REMOVE_SHORT_TRAJECTORIES = 15
@@ -130,15 +135,15 @@ THRESHOLD_REMOVE_SHORT_TRAJECTORIES = 15
 
 # corner detection mask to select new points from a distance (Region of interest)
 
-# In[9]:
+# In[62]:
 
 
 mask = np.ones((int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)), int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))), np.uint8)
 
 # apply mask to select new points from a distance (Region of interest)
 mask[-200:] = 0
-mask[:, :700] = 0
-mask[:, -700:] = 0
+mask[:, :350] = 0
+mask[:, -350:] = 0
 
 frame = get_frame(cap, 0)[0]
 frame = cv2.bitwise_and(frame, frame, mask=mask)
@@ -148,7 +153,7 @@ plt.imshow(frame)
 # ### Corner Feature Detection
 # Detect corners using Shi-Tomasi corner detection algorithm.
 
-# In[10]:
+# In[63]:
 
 
 all_corners = []
@@ -168,11 +173,20 @@ def get_points_of_frame(frame_number):
     return corners
 
 
+# In[64]:
+
+
+frame = get_frame(cap, 0)[0]
+corners = get_points_of_frame(0)
+
+print(f'Initial number of corners: {len(corners)}')
+
+
 # # Feature Tracking using Lucas-Kanade Optical Flow
 
 # #### Output video of the motion vectors
 
-# In[11]:
+# In[65]:
 
 
 # random colours to label different lines
@@ -214,7 +228,7 @@ def output_video_of_trajectories(frame_trajectories, filename):
 # #### Remove stationary points
 # Filter and remove points that are not moving more than Min_displacement
 
-# In[12]:
+# In[66]:
 
 
 def filter_for_minimum_displacement(good_old, good_new):
@@ -232,7 +246,7 @@ def filter_for_minimum_displacement(good_old, good_new):
 # #### Clip max trajectory length
 # Hard limit length of a tracked point
 
-# In[13]:
+# In[67]:
 
 
 def clip_max_trajectory(trajectory_list):
@@ -241,7 +255,7 @@ def clip_max_trajectory(trajectory_list):
 
 # #### Remove points that are too close to the left and right edge of the frame
 
-# In[14]:
+# In[68]:
 
 
 def point_is_at_left_right_edge(point, image_shape):
@@ -252,7 +266,7 @@ def point_is_at_left_right_edge(point, image_shape):
 # - Points over many consecutive frames are considered stable motion vectors
 # - Can't be made concurrent since we need prior frame to calculate the optical flow
 
-# In[15]:
+# In[69]:
 
 
 print("Processing frames for optical flow")
@@ -313,19 +327,19 @@ for i in range(1, total_number_of_frames):
 
 # #### Output video of all unprocessed trajectories
 
-# In[ ]:
+# In[70]:
 
 
 if FLAG_OUTPUT_VIDEOS:
     print(f'Outputting video with trajectories to {output_folder}/all_trajectories.avi')
-    output_video_of_trajectories(all_frame_trajectories, f'{output_folder}/all_trajectories.avi')
+    # output_video_of_trajectories(all_frame_trajectories, f'{output_folder}/all_trajectories.avi')
 else:
     print('Skipping video output')
 
 
 # #### Display tracked points counts by frame
 
-# In[17]:
+# In[71]:
 
 
 x = np.arange(0, total_number_of_frames)
@@ -340,32 +354,43 @@ plt.plot(x, y)
 
 # # Choosing stationary object motion vectors
 
-# Remove vector paths with low momentum
+# remove trajectories with short history
+
+# In[72]:
+
+
+temp = []
+for frame in all_frame_trajectories:
+    frame_vectors = {}
+    for start_position, points in frame.items():
+        if len(points) > THRESHOLD_REMOVE_SHORT_TRAJECTORIES:
+            frame_vectors[start_position] = points
+    temp.append(frame_vectors)
+
+processed_frame_trajectories = temp
+
 
 # # R-VP Voting
 # Using RANSAC to find the best vanishing point
 
-# In[18]:
+# In[73]:
 
 
 example_frame = 40
 
 # filter related frame for short trajectories
-trajectories = all_frame_trajectories[example_frame]
-ignore_short_history_trajectories = {start_position: points for start_position, points in trajectories.items() if len(points) > THRESHOLD_REMOVE_SHORT_TRAJECTORIES}
+example_frame_trajectories = processed_frame_trajectories[example_frame]
 
 # display frame with trajectories
-frame = get_frame_with_trajectories(example_frame, ignore_short_history_trajectories)
+frame = get_frame_with_trajectories(example_frame, example_frame_trajectories)
 plt.figure(figsize=(12, 12))
 plt.imshow(frame)
 
 
 # #### RANSAC voting
 
-# In[19]:
+# In[74]:
 
-
-import numpy as np
 
 def find_vanishing_point(line_segments, iterations=500, threshold=10,  inlier_ratio=0.6):
     best_vanishing_point = None
@@ -442,12 +467,12 @@ def find_vanishing_point(line_segments, iterations=500, threshold=10,  inlier_ra
     return best_vanishing_point, max_inliers
 
 
-# In[20]:
+# In[75]:
 
 
 ransac_vectors = []
 
-for start_position, points in ignore_short_history_trajectories.items():
+for start_position, points in example_frame_trajectories.items():
     for i in range(1, len(points)):
         # Store both start and end points of each vector
         start_point = points[i - 1].ravel()
@@ -462,10 +487,10 @@ print("Vanishing Point:", vanishing_point)
 print("Number of Inliers:", inliers_count)
 
 
-# In[21]:
+# In[76]:
 
 
-frame = get_frame_with_trajectories(example_frame, ignore_short_history_trajectories)
+frame = get_frame_with_trajectories(example_frame, example_frame_trajectories)
 
 # Draw vp
 if vanishing_point is not None:
@@ -478,15 +503,32 @@ plt.imshow(frame)
 # #### Find R-VP using RANSAC on all frames
 # Run R-VP voting on all frames and add the best vanishing point to all_vp
 
-# In[22]:
+# In[77]:
 
 
-def process_single_frame_r_vp(i):
-    trajectories = all_frame_trajectories[i]
-    ignore_short_history_trajectories = {start_position: points for start_position, points in trajectories.items() if len(points) > THRESHOLD_REMOVE_SHORT_TRAJECTORIES}
+# Step 1: Serialize each frame separately and store it in shared memory
+shared_memory_blocks = []
+for frame_data in processed_frame_trajectories:
+    serialized_frame = pickle.dumps(frame_data)
+    shm = shared_memory.SharedMemory(create=True, size=len(serialized_frame))
+    shm.buf[:len(serialized_frame)] = serialized_frame  # Copy serialized data to shared memory
+    shared_memory_blocks.append(shm)  # Store each shared memory block
+
+
+# In[78]:
+
+
+def process_single_frame_r_vp(shm_name):
+    # Access shared memory for the specified frame
+    existing_shm = shared_memory.SharedMemory(name=shm_name)
+    serialized_frame = bytes(existing_shm.buf[:])
+    shared_processed_frame_trajectories = pickle.loads(serialized_frame)
+    existing_shm.close()
+    existing_shm.unlink()
+    
     ransac_vectors = []
 
-    for start_position, points in ignore_short_history_trajectories.items():
+    for start_position, points in shared_processed_frame_trajectories.items():
         for i in range(1, len(points)):
             start_point = points[i - 1].ravel()
             end_point = points[i].ravel()
@@ -498,26 +540,26 @@ def process_single_frame_r_vp(i):
         return np.array([0, 0])
     
     vanishing_point, inliers_count = find_vanishing_point(ransac_vectors)
+
+
     return vanishing_point
 
 
 # Run for all concurrently 
 
-# In[23]:
+# In[ ]:
 
-
-from multiprocessing import Pool
 
 print ("Processing all frames for vanishing points")
 
 with Pool() as pool:
     # Use pool.map to process each frame in parallel
-    all_vp = pool.map(process_single_frame_r_vp, range(len(all_frame_trajectories)))
+    all_vp = pool.map(process_single_frame_r_vp, [shm.name for shm in shared_memory_blocks])
 
 all_vp = np.array(all_vp)
 
 
-# In[27]:
+# In[ ]:
 
 
 def output_video_of_R_VP(VP, filename):
@@ -525,7 +567,7 @@ def output_video_of_R_VP(VP, filename):
     for i in range(0, len(VP)):
         frame_number = i
         vanishing_point = VP[i]
-        frame = get_frame_with_trajectories(frame_number, all_frame_trajectories[frame_number])
+        frame = get_frame_with_trajectories(frame_number, processed_frame_trajectories[frame_number])
         if vanishing_point is not None:
             frame = cv2.circle(frame, tuple(vanishing_point.astype(int)), 10, (0, 255, 0), 5)
         video.add_frame(frame)
@@ -541,7 +583,7 @@ else:
 
 # # Save results
 
-# In[28]:
+# In[ ]:
 
 
 # output all trajectories and vanishing points
