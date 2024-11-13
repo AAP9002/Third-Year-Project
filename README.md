@@ -1,7 +1,7 @@
 # Third Year Project
 Project Report: [View](https://www.overleaf.com/read/hbjgkyqcddgq#3322ea)
 
-Project Log: [View](https://alansnotes.notion.site/Bend-Evaluation-by-Feature-Shifts-13d57d67a5bf805a8a6ff1cfe588fc89)
+Project Log: [View](https://alansnotes.notion.site/typ)
 
 [Camera System](https://github.com/AAP9002/Third-Year-Project/tree/main/camera-system) -> Data Cleaning -> Model Design -> Model evaluation -> Refinements
 
