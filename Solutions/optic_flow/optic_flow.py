@@ -12,13 +12,13 @@
 # 4. angle-based RANSAC
 # (RANdom SAmple Consensus) voting
 
-# In[56]:
+# In[126]:
 
 
 FLAG_OUTPUT_VIDEOS = True
 
 
-# In[57]:
+# In[127]:
 
 
 import cv2
@@ -28,22 +28,24 @@ import copy
 from matplotlib import pyplot as plt
 import pickle
 from multiprocessing import shared_memory, Pool
+import math
 
 # create temp folder
 if not os.path.exists('temp'):
     os.makedirs('temp')
 
 
-# In[58]:
+# In[128]:
 
 
-# file = "../../data/Dataset/unlabelled/Harard Warning Lights.mp4"
-# file = "test_15s_video.MP4"
-file = '2022_0813_191459_018.MP4'
+# file = "../../data/Dataset/unlabelled/241026_134333_062_FH.MP4"
+# file = "test_20s_video.MP4"
+file = '2022_0813_184754_009.MP4'
 
 cap = cv2.VideoCapture(file)
 total_number_of_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-
+frame_batch_size = 200
+batches = math.ceil(total_number_of_frames / frame_batch_size)
 
 file_name = os.path.splitext(os.path.basename(file))[0]
 
@@ -56,35 +58,32 @@ if not os.path.exists(output_folder):
 
 print(f'Processing file: {file}')
 print(f'Total number of frames: {total_number_of_frames}')
+print(f'Number of batches: {batches} of upto {frame_batch_size} frames')
 print(f'Output folder: {output_folder}')
 
 
 # ### Frame handling
 
-# In[59]:
+# In[129]:
 
 
 def preprocess_frame(frame):
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    # mask bottom
-    # gray[-400:] = 0
-    # # mask sides
-    # gray[:, :100] = 0
-    # gray[:, -100:] = 0
-    # # blur
-    # gray = cv2.GaussianBlur(gray, (3, 3 ), 0)
     return gray
 
 def get_frame(cap, frame_number):
     cap.set(cv2.CAP_PROP_POS_FRAMES, frame_number)
     ret, frame = cap.read()
+    if not ret:
+        print(f'Error reading frame {frame_number}')
+        return None, None
     processed_frame = preprocess_frame(frame)
     return frame, processed_frame
 
 
 # # Video Builder
 
-# In[60]:
+# In[130]:
 
 
 class VideoBuilder:
@@ -109,11 +108,11 @@ class VideoBuilder:
 # 
 # initialise motion detection parameters
 
-# In[ ]:
+# In[131]:
 
 
 # params for ShiTomasi corner detection
-feature_params = dict( maxCorners = 300,
+feature_params = dict( maxCorners = 500,
                        qualityLevel = 0.3,
                        minDistance = 20,
                        blockSize = 7,)
@@ -135,7 +134,7 @@ THRESHOLD_REMOVE_SHORT_TRAJECTORIES = 15
 
 # corner detection mask to select new points from a distance (Region of interest)
 
-# In[62]:
+# In[132]:
 
 
 mask = np.ones((int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)), int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))), np.uint8)
@@ -153,7 +152,7 @@ plt.imshow(frame)
 # ### Corner Feature Detection
 # Detect corners using Shi-Tomasi corner detection algorithm.
 
-# In[63]:
+# In[133]:
 
 
 all_corners = []
@@ -173,20 +172,20 @@ def get_points_of_frame(frame_number):
     return corners
 
 
-# In[64]:
+# In[134]:
 
 
 frame = get_frame(cap, 0)[0]
 corners = get_points_of_frame(0)
 
-print(f'Initial number of corners: {len(corners)}')
+print(f'Example frame {0} with {len(corners)} corners')
 
 
 # # Feature Tracking using Lucas-Kanade Optical Flow
 
 # #### Output video of the motion vectors
 
-# In[65]:
+# In[135]:
 
 
 # random colours to label different lines
@@ -213,11 +212,12 @@ def get_frame_with_trajectories(frame_number, trajectories):
 
 
 # create frames with trajectories and save them to a video
-def output_video_of_trajectories(frame_trajectories, filename):
+def output_video_of_trajectories(start, end, batch_trajectories, filename):
+    print(f'Creating video: {filename}')
     video = VideoBuilder(filename, 30)
-    for i in range(total_number_of_frames):
+    for i in range(start, end):
         frame_number = i
-        trajectories = frame_trajectories[i]
+        trajectories = batch_trajectories[frame_number % frame_batch_size]
         frame = get_frame_with_trajectories(frame_number, trajectories)
         video.add_frame(frame)
     video.stop_recording()
@@ -228,7 +228,7 @@ def output_video_of_trajectories(frame_trajectories, filename):
 # #### Remove stationary points
 # Filter and remove points that are not moving more than Min_displacement
 
-# In[66]:
+# In[136]:
 
 
 def filter_for_minimum_displacement(good_old, good_new):
@@ -246,7 +246,7 @@ def filter_for_minimum_displacement(good_old, good_new):
 # #### Clip max trajectory length
 # Hard limit length of a tracked point
 
-# In[67]:
+# In[137]:
 
 
 def clip_max_trajectory(trajectory_list):
@@ -255,7 +255,7 @@ def clip_max_trajectory(trajectory_list):
 
 # #### Remove points that are too close to the left and right edge of the frame
 
-# In[68]:
+# In[138]:
 
 
 def point_is_at_left_right_edge(point, image_shape):
@@ -266,130 +266,122 @@ def point_is_at_left_right_edge(point, image_shape):
 # - Points over many consecutive frames are considered stable motion vectors
 # - Can't be made concurrent since we need prior frame to calculate the optical flow
 
-# In[69]:
+# In[139]:
 
 
-print("Processing frames for optical flow")
-all_frame_trajectories = [] # store all trajectories for each frame
+def get_frame_frame_trajectories_from_batch(start, end, last_frame_trajectories):
+    p0 = get_points_of_frame(start)
+    _, last_frame = get_frame(cap, start)
 
-# initial frame and starting points
-p0 = get_points_of_frame(0)
-_, last_frame = get_frame(cap, 0)
-
-# Init tracked points
-trajectories = {tuple(p.ravel()): [p] for p in p0}
-all_frame_trajectories.append(copy.deepcopy(trajectories))
-
-for i in range(1, total_number_of_frames):
-    _, frame_gray = get_frame(cap, i)
-    
-    # calculate optical flow
-    p1, st, err = cv2.calcOpticalFlowPyrLK(last_frame, frame_gray, p0, None, **lk_params)
-
-    # Select good points
-    if p1 is not None:
-        good_new = p1[st==1]
-        good_old = p0[st==1]
-
-    # Filter out points that have not moved enough
-    good_old, good_new = filter_for_minimum_displacement(good_old, good_new)
-
-    new_trajectories = {}
-    for new, old in zip(good_new, good_old):
-        start_position = tuple(old.ravel())  # Use the original position as the key
-        next_iterations_start_position = tuple(new.ravel())  # Use the new position as the key for the next iteration
-
-        # Check if the point is at the edge of the image
-        if point_is_at_left_right_edge(next_iterations_start_position, frame_gray.shape):
-            continue
-
-        if start_position in trajectories:
-            # Update tracked points with new position
-            trajectories[start_position].append(new)
-            new_trajectories[next_iterations_start_position] = clip_max_trajectory(trajectories[start_position])
-
-    # Replace old trajectories with updated ones that exclude lost points
-    trajectories = new_trajectories
-    all_frame_trajectories.append(copy.deepcopy(trajectories))
-
-    # prepare for next iteration
-    last_frame = frame_gray.copy()
-    p0 = good_new.reshape(-1, 1, 2)
-
-    if len(p0) < MINIMUM_TRACKED_POINTS: # keep adding points once fall below 400
-        new_points = get_points_of_frame(i)
-        p0 = np.concatenate((p0, new_points), axis=0)
-        for new_p in new_points:
-            start_position = tuple(new_p.ravel())
+    # init tracked points and use last frame's trajectories if available
+    trajectories = {tuple(p.ravel()): [p] for p in p0}
+    if last_frame_trajectories is not None:
+        for start_position, points in last_frame_trajectories.items():
             if start_position not in trajectories:
-                trajectories[start_position] = [new_p]
+                trajectories[start_position] = points
 
+    # store trajectories for each frame in batch
+    batch_trajectories = []
+    batch_trajectories.append(trajectories)
 
-# #### Output video of all unprocessed trajectories
+    # iterate through the batch frames
+    for i in range(start+1, end): # start from 1 as we already have the first frame so displacement would be 0
+        _, frame_gray = get_frame(cap, i)
+        if frame_gray is None:
+            print(f'Error reading frame {i}')
+            break
 
-# In[70]:
+        # print(f'Processing frame {i} with p0 {len(p0)}')
 
+        p1, st, err = cv2.calcOpticalFlowPyrLK(last_frame, frame_gray, p0, None, **lk_params)
 
-if FLAG_OUTPUT_VIDEOS:
-    print(f'Outputting video with trajectories to {output_folder}/all_trajectories.avi')
-    # output_video_of_trajectories(all_frame_trajectories, f'{output_folder}/all_trajectories.avi')
-else:
-    print('Skipping video output')
+        # Select good points
+        if p1 is None:
+            print(f'No matching features found {i}')
+            break
+        good_new = p1[st == 1]
+        good_old = p0[st == 1]
 
+        # Filter points based on minimum displacement
+        good_old, good_new = filter_for_minimum_displacement(good_old, good_new)
 
-# #### Display tracked points counts by frame
+        # Update trajectories
+        new_trajectories = {}
+        for new, old in zip(good_new, good_old):
+            start_position = tuple(old.ravel())  # Use the original position as the key
+            next_iterations_start_position = tuple(new.ravel())  # Use the new position as the key for the next iteration
 
-# In[71]:
+            # Check if the point is at the edge of the image
+            if point_is_at_left_right_edge(next_iterations_start_position, frame_gray.shape):
+                continue
 
+            if start_position in trajectories:
+                # Update tracked points with new position
+                trajectories[start_position].append(new)
+                new_trajectories[next_iterations_start_position] = clip_max_trajectory(trajectories[start_position])
 
-x = np.arange(0, total_number_of_frames)
-y = [len(frame_trajectories) for frame_trajectories in all_frame_trajectories]
+        # Replace old trajectories with updated ones that exclude lost points
+        trajectories = new_trajectories
 
-plt.axhline(y=MINIMUM_TRACKED_POINTS, color='r', linestyle='-')
-plt.title('Number of tracked points over time')
-plt.xlabel('Frame number')
-plt.ylabel('Number of tracked points')
-plt.plot(x, y)
+        batch_trajectories.append(copy.deepcopy(trajectories))
+
+        # prepare for next iteration
+        last_frame = frame_gray.copy()
+        p0 = good_new.reshape(-1, 1, 2)
+
+        if len(p0) < MINIMUM_TRACKED_POINTS: # keep adding points once fall below 400
+            new_points = get_points_of_frame(i)
+            p0 = np.concatenate((p0, new_points), axis=0)
+            for new_p in new_points:
+                start_position = tuple(new_p.ravel())
+                if start_position not in trajectories:
+                    trajectories[start_position] = [new_p]
+
+    return batch_trajectories
 
 
 # # Choosing stationary object motion vectors
 
 # remove trajectories with short history
 
-# In[72]:
+# In[140]:
 
 
-temp = []
-for frame in all_frame_trajectories:
-    frame_vectors = {}
-    for start_position, points in frame.items():
-        if len(points) > THRESHOLD_REMOVE_SHORT_TRAJECTORIES:
-            frame_vectors[start_position] = points
-    temp.append(frame_vectors)
+def process_tracked_points(frame_trajectories):
+    # remove short trajectories
+    temp = [] 
+    for frame in frame_trajectories:
+        frame_vectors = {}
+        for start_position, points in frame.items():
+            if len(points) > THRESHOLD_REMOVE_SHORT_TRAJECTORIES:
+                frame_vectors[start_position] = points
+        temp.append(frame_vectors)
 
-processed_frame_trajectories = temp
+    return temp
 
 
 # # R-VP Voting
 # Using RANSAC to find the best vanishing point
 
-# In[73]:
+# In[141]:
 
 
-example_frame = 40
-
-# filter related frame for short trajectories
-example_frame_trajectories = processed_frame_trajectories[example_frame]
-
-# display frame with trajectories
-frame = get_frame_with_trajectories(example_frame, example_frame_trajectories)
-plt.figure(figsize=(12, 12))
-plt.imshow(frame)
+def output_video_of_R_VP(starting_frame, VP, filename, processed_frame_trajectories):
+    print(f'Creating video: {filename}')
+    video = VideoBuilder(filename, 30)
+    for i in range(0, len(VP)):
+        frame_number = starting_frame + i
+        vanishing_point = VP[i]
+        frame = get_frame_with_trajectories(frame_number, processed_frame_trajectories[i])
+        if vanishing_point is not None:
+            frame = cv2.circle(frame, tuple(vanishing_point.astype(int)), 10, (0, 255, 0), 5)
+        video.add_frame(frame)
+    video.stop_recording()
 
 
 # #### RANSAC voting
 
-# In[74]:
+# In[142]:
 
 
 def find_vanishing_point(line_segments, iterations=500, threshold=10,  inlier_ratio=0.6):
@@ -467,55 +459,26 @@ def find_vanishing_point(line_segments, iterations=500, threshold=10,  inlier_ra
     return best_vanishing_point, max_inliers
 
 
-# In[75]:
-
-
-ransac_vectors = []
-
-for start_position, points in example_frame_trajectories.items():
-    for i in range(1, len(points)):
-        # Store both start and end points of each vector
-        start_point = points[i - 1].ravel()
-        end_point = points[i].ravel()
-        ransac_vectors.append([start_point, end_point])
-
-ransac_vectors = np.array(ransac_vectors)
-
-vanishing_point, inliers_count = find_vanishing_point(ransac_vectors)
-
-print("Vanishing Point:", vanishing_point)
-print("Number of Inliers:", inliers_count)
-
-
-# In[76]:
-
-
-frame = get_frame_with_trajectories(example_frame, example_frame_trajectories)
-
-# Draw vp
-if vanishing_point is not None:
-    frame = cv2.circle(frame, tuple(vanishing_point.astype(int)), 10, (0, 255, 0), 6)
-
-plt.figure(figsize=(12, 12))
-plt.imshow(frame)
-
-
 # #### Find R-VP using RANSAC on all frames
 # Run R-VP voting on all frames and add the best vanishing point to all_vp
 
-# In[77]:
+# In[143]:
 
 
 # Step 1: Serialize each frame separately and store it in shared memory
-shared_memory_blocks = []
-for frame_data in processed_frame_trajectories:
-    serialized_frame = pickle.dumps(frame_data)
-    shm = shared_memory.SharedMemory(create=True, size=len(serialized_frame))
-    shm.buf[:len(serialized_frame)] = serialized_frame  # Copy serialized data to shared memory
-    shared_memory_blocks.append(shm)  # Store each shared memory block
+def setup_shared_memory(processed_frame_trajectories):
+    print('Setting up shared memory for batch processed frames')
+    shared_memory_blocks = []
+    for frame_data in processed_frame_trajectories:
+        serialized_frame = pickle.dumps(frame_data)
+        shm = shared_memory.SharedMemory(create=True, size=len(serialized_frame))
+        shm.buf[:len(serialized_frame)] = serialized_frame  # Copy serialized data to shared memory
+        shared_memory_blocks.append(shm)  # Store each shared memory block
+
+    return shared_memory_blocks
 
 
-# In[78]:
+# In[144]:
 
 
 def process_single_frame_r_vp(shm_name):
@@ -541,52 +504,52 @@ def process_single_frame_r_vp(shm_name):
     
     vanishing_point, inliers_count = find_vanishing_point(ransac_vectors)
 
+    # print("Vanishing Point:", vanishing_point)
+    # print("Number of Inliers:", inliers_count)
 
     return vanishing_point
 
 
-# Run for all concurrently 
+# Run R-VP on Batch
 
-# In[ ]:
-
-
-print ("Processing all frames for vanishing points")
-
-with Pool() as pool:
-    # Use pool.map to process each frame in parallel
-    all_vp = pool.map(process_single_frame_r_vp, [shm.name for shm in shared_memory_blocks])
-
-all_vp = np.array(all_vp)
+# In[145]:
 
 
-# In[ ]:
+def get_batch_R_VPS(processed_frame_trajectories):
+
+    shared_memory_blocks = setup_shared_memory(processed_frame_trajectories)
+    shared_memory_names = [shm.name for shm in shared_memory_blocks]
+
+    print('Processing R-VPs for all frames in batch')
+    with Pool() as pool:
+        vanishing_points = pool.map(process_single_frame_r_vp, shared_memory_names)
+
+    return vanishing_points
 
 
-def output_video_of_R_VP(VP, filename):
-    video = VideoBuilder(filename, 30)
-    for i in range(0, len(VP)):
-        frame_number = i
-        vanishing_point = VP[i]
-        frame = get_frame_with_trajectories(frame_number, processed_frame_trajectories[frame_number])
-        if vanishing_point is not None:
-            frame = cv2.circle(frame, tuple(vanishing_point.astype(int)), 10, (0, 255, 0), 5)
-        video.add_frame(frame)
-    video.stop_recording()
+# # Perform R-VP voting on Video
+
+# In[146]:
 
 
-if FLAG_OUTPUT_VIDEOS:
-    print(f'Outputting video with vanishing points to {output_folder}/all_vp.avi')
-    output_video_of_R_VP(all_vp, f'{output_folder}/all_vp.avi')
-else:
-    print('Skipping video output')
+last_batch_trajectories = None
 
+for i in range(batches):
+    start = i * frame_batch_size
+    end = min(start + frame_batch_size, total_number_of_frames)
+    print(f'Processing batch {i+1}/{batches} from frame {start} to {end}')
+    print(f'Getting trajectories for batch {i+1}')
 
-# # Save results
+    last_batch_trajectories = get_frame_frame_trajectories_from_batch(start, end, last_batch_trajectories)
+    # output_video_of_trajectories(start, end, last_batch_trajectories, f'{output_folder}/batch_{i+1}.avi')
+    batch_processed = process_tracked_points(last_batch_trajectories)
+    batch_r_vp = get_batch_R_VPS(batch_processed)
 
-# In[ ]:
-
-
-# output all trajectories and vanishing points
-# np.save('temp/all_trajectories.npy', all_frame_trajectories) # too large to save
-np.save(f'{output_folder}/all_vp.npy', all_vp)
+    np.save(f'{output_folder}/batch_{i+1}_r_vp.npy', batch_r_vp)
+    output_video_of_R_VP(start, batch_r_vp, f'{output_folder}/batch_{i+1}_r_vp.avi', batch_processed)
+    
+    print(f'Batch {i+1} done')
+    last_batch_trajectories = last_batch_trajectories[-1]
+    batch_processed = None
+    batch_r_vp = None
 
