@@ -1,0 +1,29 @@
+# params for ShiTomasi corner detection
+feature_params = dict( maxCorners = 500,
+                       qualityLevel = 0.3,
+                       minDistance = 20,
+                       blockSize = 7,)
+
+mask = np.ones((int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)), int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))), np.uint8)
+mask[-200:] = 0
+mask[:, :350] = 0
+mask[:, -350:] = 0
+
+# Parameters for lucas kanade optical flow
+lk_params = dict( winSize  = (15, 15),
+                  maxLevel = 2,
+                  criteria = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 10, 0.03))
+
+# TRACKING PARAMETERS
+MINIMUM_TRACKED_POINTS = 400
+MINIMUM_DISPLACEMENT = 1
+MAXIMUM_TRAJECTORY_LENGTH = 30
+THRESHOLD_REMOVE_POINTS_ON_SIDE = 200
+
+# R-VP parameters
+THRESHOLD_REMOVE_SHORT_TRAJECTORIES = 15
+
+# RANSAC
+RANSAC_ITERATIONS = 500
+RANSAC_THRESHOLD = 10
+RANSAC_INLIERS_RATIO = 0.6
