@@ -12,13 +12,13 @@
 # 4. angle-based RANSAC
 # (RANdom SAmple Consensus) voting
 
-# In[126]:
+# In[64]:
 
 
 FLAG_OUTPUT_VIDEOS = True
 
 
-# In[127]:
+# In[65]:
 
 
 import cv2
@@ -35,15 +35,18 @@ if not os.path.exists('temp'):
     os.makedirs('temp')
 
 
-# In[128]:
+# In[66]:
 
 
-# file = "../../data/Dataset/unlabelled/241026_134333_062_FH.MP4"
+# file = "241026_134333_062_FH.MP4"
+file = "2022_0813_191759_019.MP4"
 # file = "test_20s_video.MP4"
-file = '2022_0813_184754_009.MP4'
+# file = '2022_0813_184754_009.MP4'
 
 cap = cv2.VideoCapture(file)
 total_number_of_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+FRAME_RATE = int(cap.get(cv2.CAP_PROP_FPS))
+# FRAME_RATE = 29.97
 frame_batch_size = 200
 batches = math.ceil(total_number_of_frames / frame_batch_size)
 
@@ -58,13 +61,50 @@ if not os.path.exists(output_folder):
 
 print(f'Processing file: {file}')
 print(f'Total number of frames: {total_number_of_frames}')
+print(f'Frame rate: {FRAME_RATE}')
 print(f'Number of batches: {batches} of upto {frame_batch_size} frames')
 print(f'Output folder: {output_folder}')
 
 
+# Configuration
+
+# In[67]:
+
+
+# params for ShiTomasi corner detection
+feature_params = dict( maxCorners = 500,
+                       qualityLevel = 0.3,
+                       minDistance = 20,
+                       blockSize = 7,)
+
+mask = np.ones((int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)), int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))), np.uint8)
+mask[-200:] = 0
+mask[:, :350] = 0
+mask[:, -350:] = 0
+
+# Parameters for lucas kanade optical flow
+lk_params = dict( winSize  = (15, 15),
+                  maxLevel = 2,
+                  criteria = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 10, 0.03))
+
+# TRACKING PARAMETERS
+MINIMUM_TRACKED_POINTS = 400
+MINIMUM_DISPLACEMENT = 1
+MAXIMUM_TRAJECTORY_LENGTH = 30
+THRESHOLD_REMOVE_POINTS_ON_SIDE = 200
+
+# R-VP parameters
+THRESHOLD_REMOVE_SHORT_TRAJECTORIES = 15
+
+# RANSAC
+RANSAC_ITERATIONS = 500
+RANSAC_THRESHOLD = 10
+RANSAC_INLIERS_RATIO = 0.6
+
+
 # ### Frame handling
 
-# In[129]:
+# In[68]:
 
 
 def preprocess_frame(frame):
@@ -83,7 +123,7 @@ def get_frame(cap, frame_number):
 
 # # Video Builder
 
-# In[130]:
+# In[69]:
 
 
 class VideoBuilder:
@@ -94,7 +134,7 @@ class VideoBuilder:
 
     def add_frame(self, frame):
         if self.recorder is None:
-            self.recorder = cv2.VideoWriter(self.output_file, cv2.VideoWriter_fourcc(*'XVID'), self.fps, (frame.shape[1], frame.shape[0]))
+            self.recorder = cv2.VideoWriter(self.output_file, cv2.VideoWriter_fourcc(*'mp4v'), self.fps, (frame.shape[1], frame.shape[0]))
 
         self.recorder.write(frame)
 
@@ -105,44 +145,11 @@ class VideoBuilder:
 
 
 # # Motion Vector Detection
-# 
-# initialise motion detection parameters
-
-# In[131]:
-
-
-# params for ShiTomasi corner detection
-feature_params = dict( maxCorners = 500,
-                       qualityLevel = 0.3,
-                       minDistance = 20,
-                       blockSize = 7,)
-
-# Parameters for lucas kanade optical flow
-lk_params = dict( winSize  = (15, 15),
-                  maxLevel = 2,
-                  criteria = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 10, 0.03))
-
-# TRACKING PARAMETERS
-MINIMUM_TRACKED_POINTS = 400
-MINIMUM_DISPLACEMENT = 1
-MAXIMUM_TRAJECTORY_LENGTH = 30
-THRESHOLD_REMOVE_POINTS_ON_SIDE = 200
-
-# R-VP parameters
-THRESHOLD_REMOVE_SHORT_TRAJECTORIES = 15
-
 
 # corner detection mask to select new points from a distance (Region of interest)
 
-# In[132]:
+# In[70]:
 
-
-mask = np.ones((int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)), int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))), np.uint8)
-
-# apply mask to select new points from a distance (Region of interest)
-mask[-200:] = 0
-mask[:, :350] = 0
-mask[:, -350:] = 0
 
 frame = get_frame(cap, 0)[0]
 frame = cv2.bitwise_and(frame, frame, mask=mask)
@@ -152,7 +159,7 @@ plt.imshow(frame)
 # ### Corner Feature Detection
 # Detect corners using Shi-Tomasi corner detection algorithm.
 
-# In[133]:
+# In[71]:
 
 
 all_corners = []
@@ -172,7 +179,7 @@ def get_points_of_frame(frame_number):
     return corners
 
 
-# In[134]:
+# In[72]:
 
 
 frame = get_frame(cap, 0)[0]
@@ -185,7 +192,7 @@ print(f'Example frame {0} with {len(corners)} corners')
 
 # #### Output video of the motion vectors
 
-# In[135]:
+# In[73]:
 
 
 # random colours to label different lines
@@ -214,7 +221,7 @@ def get_frame_with_trajectories(frame_number, trajectories):
 # create frames with trajectories and save them to a video
 def output_video_of_trajectories(start, end, batch_trajectories, filename):
     print(f'Creating video: {filename}')
-    video = VideoBuilder(filename, 30)
+    video = VideoBuilder(filename, FRAME_RATE)
     for i in range(start, end):
         frame_number = i
         trajectories = batch_trajectories[frame_number % frame_batch_size]
@@ -228,7 +235,7 @@ def output_video_of_trajectories(start, end, batch_trajectories, filename):
 # #### Remove stationary points
 # Filter and remove points that are not moving more than Min_displacement
 
-# In[136]:
+# In[74]:
 
 
 def filter_for_minimum_displacement(good_old, good_new):
@@ -246,7 +253,7 @@ def filter_for_minimum_displacement(good_old, good_new):
 # #### Clip max trajectory length
 # Hard limit length of a tracked point
 
-# In[137]:
+# In[75]:
 
 
 def clip_max_trajectory(trajectory_list):
@@ -255,7 +262,7 @@ def clip_max_trajectory(trajectory_list):
 
 # #### Remove points that are too close to the left and right edge of the frame
 
-# In[138]:
+# In[76]:
 
 
 def point_is_at_left_right_edge(point, image_shape):
@@ -266,7 +273,7 @@ def point_is_at_left_right_edge(point, image_shape):
 # - Points over many consecutive frames are considered stable motion vectors
 # - Can't be made concurrent since we need prior frame to calculate the optical flow
 
-# In[139]:
+# In[77]:
 
 
 def get_frame_frame_trajectories_from_batch(start, end, last_frame_trajectories):
@@ -293,37 +300,41 @@ def get_frame_frame_trajectories_from_batch(start, end, last_frame_trajectories)
 
         # print(f'Processing frame {i} with p0 {len(p0)}')
 
-        p1, st, err = cv2.calcOpticalFlowPyrLK(last_frame, frame_gray, p0, None, **lk_params)
+        if p0 is None or len(p0) == 0:
+            print("No points to track.")
+            batch_trajectories.append({})
+        else:
+            p1, st, err = cv2.calcOpticalFlowPyrLK(last_frame, frame_gray, p0, None, **lk_params)
 
-        # Select good points
-        if p1 is None:
-            print(f'No matching features found {i}')
-            break
-        good_new = p1[st == 1]
-        good_old = p0[st == 1]
+            # Select good points
+            if p1 is None:
+                print(f'No matching features found {i}')
+                break
+            good_new = p1[st == 1]
+            good_old = p0[st == 1]
 
-        # Filter points based on minimum displacement
-        good_old, good_new = filter_for_minimum_displacement(good_old, good_new)
+            # Filter points based on minimum displacement
+            good_old, good_new = filter_for_minimum_displacement(good_old, good_new)
 
-        # Update trajectories
-        new_trajectories = {}
-        for new, old in zip(good_new, good_old):
-            start_position = tuple(old.ravel())  # Use the original position as the key
-            next_iterations_start_position = tuple(new.ravel())  # Use the new position as the key for the next iteration
+            # Update trajectories
+            new_trajectories = {}
+            for new, old in zip(good_new, good_old):
+                start_position = tuple(old.ravel())  # Use the original position as the key
+                next_iterations_start_position = tuple(new.ravel())  # Use the new position as the key for the next iteration
 
-            # Check if the point is at the edge of the image
-            if point_is_at_left_right_edge(next_iterations_start_position, frame_gray.shape):
-                continue
+                # Check if the point is at the edge of the image
+                if point_is_at_left_right_edge(next_iterations_start_position, frame_gray.shape):
+                    continue
 
-            if start_position in trajectories:
-                # Update tracked points with new position
-                trajectories[start_position].append(new)
-                new_trajectories[next_iterations_start_position] = clip_max_trajectory(trajectories[start_position])
+                if start_position in trajectories:
+                    # Update tracked points with new position
+                    trajectories[start_position].append(new)
+                    new_trajectories[next_iterations_start_position] = clip_max_trajectory(trajectories[start_position])
 
-        # Replace old trajectories with updated ones that exclude lost points
-        trajectories = new_trajectories
+            # Replace old trajectories with updated ones that exclude lost points
+            trajectories = new_trajectories
 
-        batch_trajectories.append(copy.deepcopy(trajectories))
+            batch_trajectories.append(copy.deepcopy(trajectories))
 
         # prepare for next iteration
         last_frame = frame_gray.copy()
@@ -344,7 +355,7 @@ def get_frame_frame_trajectories_from_batch(start, end, last_frame_trajectories)
 
 # remove trajectories with short history
 
-# In[140]:
+# In[78]:
 
 
 def process_tracked_points(frame_trajectories):
@@ -363,28 +374,32 @@ def process_tracked_points(frame_trajectories):
 # # R-VP Voting
 # Using RANSAC to find the best vanishing point
 
-# In[141]:
+# In[79]:
 
 
 def output_video_of_R_VP(starting_frame, VP, filename, processed_frame_trajectories):
     print(f'Creating video: {filename}')
-    video = VideoBuilder(filename, 30)
+    video = VideoBuilder(filename, FRAME_RATE)
     for i in range(0, len(VP)):
         frame_number = starting_frame + i
         vanishing_point = VP[i]
         frame = get_frame_with_trajectories(frame_number, processed_frame_trajectories[i])
         if vanishing_point is not None:
             frame = cv2.circle(frame, tuple(vanishing_point.astype(int)), 10, (0, 255, 0), 5)
+        # plt.imshow(frame)
+        # plt.savefig(f'{output_folder}/frame_{frame_number}.png')
+        # reduce to 720p
+        frame = cv2.resize(frame, (1280, 720))
         video.add_frame(frame)
     video.stop_recording()
 
 
 # #### RANSAC voting
 
-# In[142]:
+# In[80]:
 
 
-def find_vanishing_point(line_segments, iterations=500, threshold=10,  inlier_ratio=0.6):
+def find_vanishing_point(line_segments, iterations=RANSAC_ITERATIONS, threshold=RANSAC_THRESHOLD,  inlier_ratio=RANSAC_INLIERS_RATIO):
     best_vanishing_point = None
     max_inliers = 0
     total_segments = len(line_segments)
@@ -462,7 +477,7 @@ def find_vanishing_point(line_segments, iterations=500, threshold=10,  inlier_ra
 # #### Find R-VP using RANSAC on all frames
 # Run R-VP voting on all frames and add the best vanishing point to all_vp
 
-# In[143]:
+# In[81]:
 
 
 # Step 1: Serialize each frame separately and store it in shared memory
@@ -478,7 +493,7 @@ def setup_shared_memory(processed_frame_trajectories):
     return shared_memory_blocks
 
 
-# In[144]:
+# In[82]:
 
 
 def process_single_frame_r_vp(shm_name):
@@ -512,7 +527,7 @@ def process_single_frame_r_vp(shm_name):
 
 # Run R-VP on Batch
 
-# In[145]:
+# In[83]:
 
 
 def get_batch_R_VPS(processed_frame_trajectories):
@@ -529,7 +544,7 @@ def get_batch_R_VPS(processed_frame_trajectories):
 
 # # Perform R-VP voting on Video
 
-# In[146]:
+# In[84]:
 
 
 last_batch_trajectories = None
@@ -541,12 +556,12 @@ for i in range(batches):
     print(f'Getting trajectories for batch {i+1}')
 
     last_batch_trajectories = get_frame_frame_trajectories_from_batch(start, end, last_batch_trajectories)
-    # output_video_of_trajectories(start, end, last_batch_trajectories, f'{output_folder}/batch_{i+1}.avi')
+    # output_video_of_trajectories(start, end, last_batch_trajectories, f'{output_folder}/batch_{i+1}.mp4')
     batch_processed = process_tracked_points(last_batch_trajectories)
     batch_r_vp = get_batch_R_VPS(batch_processed)
 
     np.save(f'{output_folder}/batch_{i+1}_r_vp.npy', batch_r_vp)
-    output_video_of_R_VP(start, batch_r_vp, f'{output_folder}/batch_{i+1}_r_vp.avi', batch_processed)
+    output_video_of_R_VP(start, batch_r_vp, f'{output_folder}/batch_{i+1}_r_vp.mov', batch_processed)
     
     print(f'Batch {i+1} done')
     last_batch_trajectories = last_batch_trajectories[-1]
