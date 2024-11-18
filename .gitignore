@@ -4,5 +4,6 @@
 *.MP4
 *.webm
 *.avi
+*.mov
 
 !*/**/test*.MP4
