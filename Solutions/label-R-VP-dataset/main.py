@@ -1,6 +1,5 @@
 ### Open a video and label the frames with the VP dataset
-from calendar import c
-from time import sleep
+import os
 import tkinter as tk
 from tkinter import filedialog
 import cv2
@@ -41,11 +40,18 @@ def getCursorPosition(event, x, y, flags, param):
         vp_positions.append((x, y))
         print(f'vp_positions: {vp_positions}')
 
+def output_ground_truth_r_vp(filename):
+    with open(filename, 'w') as f:
+        for vp in vp_positions:
+            f.write(f'{vp[0]} {vp[1]}\n')
+
+
 def main():
     file_path = getFileName()
     print(f'file_path: {file_path}')
     cap = getCV2Video(file_path)
     frame_count = getFrameCount(cap)
+
 
     while current_frame < frame_count:
         frame = getFrame(cap, current_frame)
@@ -55,11 +61,12 @@ def main():
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
+    else:
+        fileName = os.path.basename(file_path)
+        output_ground_truth_r_vp(f'{fileName}_ground_truth_r_vp.txt')
 
     print(f'vp_positions: {vp_positions}')
     cv2.destroyAllWindows()
     cap.release()
-
-
 
 main()
