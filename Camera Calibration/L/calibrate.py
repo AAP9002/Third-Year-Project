@@ -5,9 +5,12 @@ import os
 
 # https://docs.opencv.org/4.x/dc/dbb/tutorial_py_calibration.html
 
+dataset_path = "/home/aap9002/Stereo-Road-Curvature-Dashcam"
+calibration_location = dataset_path+'/camera_calibration/L/calibration.npz'
+calibration_images_path = dataset_path+'/camera_calibration/L/*.jpg'
 
-if os.path.exists('calibration.npz'):
-    data = np.load('calibration.npz')
+if os.path.exists(calibration_location):
+    data = np.load(calibration_location)
     mtx = data['mtx']
     dist = data['dist']
 
@@ -23,7 +26,7 @@ else:
     objpoints = [] # 3d point in real world space
     imgpoints = [] # 2d points in image plane.
     
-    images = glob.glob('Camera Calibration/FRONT/*.jpg')
+    images = glob.glob(calibration_images_path)
 
     print(images)
     
@@ -48,7 +51,7 @@ else:
 
     ret, mtx, dist, rvecs, tvecs = cv.calibrateCamera(objpoints, imgpoints, gray.shape[::-1], None, None)
 
-    np.savez('calibration.npz', mtx=mtx, dist=dist)
+    np.savez(calibration_location, mtx=mtx, dist=dist)
 
 def get_output_file_name(file):
     """get the output file name
@@ -57,9 +60,9 @@ def get_output_file_name(file):
         file (string): input file path which is used to determine the output file path
 
     Returns:
-        string: new file path with "R_calibrated.mov"
+        string: new file path with "L_calibrated.mov"
     """
-    return os.path.join(os.path.dirname(file), 'R_calibrated.mov')
+    return os.path.join(os.path.dirname(file), 'L_calibrated.mov')
 
 def check_if_file_exists(file):
     """check if the file exists
@@ -78,11 +81,19 @@ def get_file_names():
     Returns:
         list: list of file paths to be processed
     """
-    files = os.listdir('/home/aap9002/Dataset/day')
-    files = [os.path.join('/home/aap9002/Dataset/day', f) for f in files if os.path.isdir(os.path.join('/home/aap9002/Dataset/day', f))]
+    day_files = os.listdir(dataset_path+'/day')
+    day_files = [os.path.join(dataset_path+'/day', f) for f in day_files if os.path.isdir(os.path.join(dataset_path+'/day', f))]
 
-    source_video_file_name = 'R.MP4'
-    files = [os.path.join(f, source_video_file_name) for f in files]
+    source_video_file_name = 'L.MP4'
+    day_files = [os.path.join(f, source_video_file_name) for f in day_files]
+
+    night_files = os.listdir(dataset_path+'/night')
+    night_files = [os.path.join(dataset_path+'/night', f) for f in night_files if os.path.isdir(os.path.join(dataset_path+'/night', f))]
+
+    source_video_file_name = 'L.MP4'
+    night_files = [os.path.join(f, source_video_file_name) for f in night_files]
+
+    files = day_files + night_files
     print(f'checking {len(files)} files')
 
     # remove if already processed
