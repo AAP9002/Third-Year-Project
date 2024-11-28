@@ -1,29 +1,1447 @@
-# params for ShiTomasi corner detection
-feature_params = dict( maxCorners = 500,
-                       qualityLevel = 0.3,
-                       minDistance = 20,
-                       blockSize = 7,)
+              precision    recall  f1-score   support
 
-mask = np.ones((int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)), int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))), np.uint8)
-mask[-200:] = 0
-mask[:, :350] = 0
-mask[:, -350:] = 0
+      comedy       0.67      0.03      0.07       175
+        cult       0.35      0.20      0.26       247
+   flashback       0.20      0.00      0.01       294
+  historical       0.00      0.00      0.00        24
+      murder       0.59      0.90      0.71       581
+     revenge       0.29      0.19      0.23       237
+    romantic       0.62      0.51      0.56       290
+       scifi       0.00      0.00      0.00        31
+    violence       0.54      0.74      0.62       420
 
-# Parameters for lucas kanade optical flow
-lk_params = dict( winSize  = (15, 15),
-                  maxLevel = 2,
-                  criteria = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 10, 0.03))
+   micro avg       0.54      0.47      0.50      2299
+   macro avg       0.36      0.29      0.27      2299
+weighted avg       0.47      0.47      0.42      2299
+ samples avg       0.53      0.50      0.47      2299
 
-# TRACKING PARAMETERS
-MINIMUM_TRACKED_POINTS = 400
-MINIMUM_DISPLACEMENT = 1
-MAXIMUM_TRAJECTORY_LENGTH = 30
-THRESHOLD_REMOVE_POINTS_ON_SIDE = 200
+Weighted average_f1: 0.4206047873542577
+Vocab size: 5000, Max sequence length: 200, Embedding dim: 60, LSTM units: 60, batch_size: 16
 
-# R-VP parameters
-THRESHOLD_REMOVE_SHORT_TRAJECTORIES = 15
+              precision    recall  f1-score   support
 
-# RANSAC
-RANSAC_ITERATIONS = 500
-RANSAC_THRESHOLD = 10
-RANSAC_INLIERS_RATIO = 0.6
+      comedy       0.60      0.02      0.03       175
+        cult       0.40      0.08      0.13       247
+   flashback       0.31      0.02      0.03       294
+  historical       0.00      0.00      0.00        24
+      murder       0.60      0.82      0.69       581
+     revenge       0.36      0.06      0.10       237
+    romantic       0.63      0.51      0.56       290
+       scifi       0.00      0.00      0.00        31
+    violence       0.59      0.66      0.62       420
+
+   micro avg       0.59      0.41      0.48      2299
+   macro avg       0.39      0.24      0.24      2299
+weighted avg       0.50      0.41      0.39      2299
+ samples avg       0.52      0.44      0.44      2299
+
+Weighted average_f1: 0.3906458933647046
+Vocab size: 5000, Max sequence length: 200, Embedding dim: 60, LSTM units: 60, batch_size: 32
+
+              precision    recall  f1-score   support
+
+      comedy       0.21      0.03      0.05       175
+        cult       0.34      0.27      0.30       247
+   flashback       0.26      0.02      0.03       294
+  historical       0.00      0.00      0.00        24
+      murder       0.59      0.84      0.69       581
+     revenge       0.30      0.16      0.20       237
+    romantic       0.58      0.57      0.57       290
+       scifi       0.00      0.00      0.00        31
+    violence       0.53      0.76      0.62       420
+
+   micro avg       0.52      0.47      0.50      2299
+   macro avg       0.31      0.29      0.28      2299
+weighted avg       0.43      0.47      0.42      2299
+ samples avg       0.52      0.50      0.46      2299
+
+Weighted average_f1: 0.4226206494239654
+Vocab size: 5000, Max sequence length: 200, Embedding dim: 60, LSTM units: 60, batch_size: 64
+
+              precision    recall  f1-score   support
+
+      comedy       0.31      0.05      0.09       175
+        cult       0.36      0.14      0.20       247
+   flashback       0.35      0.05      0.09       294
+  historical       0.00      0.00      0.00        24
+      murder       0.60      0.84      0.70       581
+     revenge       0.37      0.08      0.13       237
+    romantic       0.65      0.48      0.55       290
+       scifi       0.00      0.00      0.00        31
+    violence       0.54      0.64      0.59       420
+
+   micro avg       0.56      0.42      0.48      2299
+   macro avg       0.35      0.25      0.26      2299
+weighted avg       0.48      0.42      0.41      2299
+ samples avg       0.52      0.45      0.44      2299
+
+Weighted average_f1: 0.40633882859332765
+Vocab size: 5000, Max sequence length: 200, Embedding dim: 60, LSTM units: 60, batch_size: 128
+         
+              precision    recall  f1-score   support
+
+      comedy       0.33      0.02      0.03       175
+        cult       0.36      0.16      0.22       247
+   flashback       0.30      0.02      0.04       294
+  historical       0.00      0.00      0.00        24
+      murder       0.57      0.86      0.69       581
+     revenge       0.29      0.09      0.14       237
+    romantic       0.61      0.50      0.55       290
+       scifi       0.00      0.00      0.00        31
+    violence       0.54      0.69      0.61       420
+
+   micro avg       0.54      0.44      0.48      2299
+   macro avg       0.33      0.26      0.25      2299
+weighted avg       0.45      0.44      0.40      2299
+ samples avg       0.52      0.47      0.45      2299
+
+Weighted average_f1: 0.4011929871149038
+Vocab size: 5000, Max sequence length: 200, Embedding dim: 60, LSTM units: 60, batch_size: 256
+
+              precision    recall  f1-score   support
+
+      comedy       0.41      0.06      0.11       175
+        cult       0.40      0.19      0.25       247
+   flashback       0.43      0.15      0.22       294
+  historical       0.00      0.00      0.00        24
+      murder       0.63      0.83      0.71       581
+     revenge       0.37      0.20      0.26       237
+    romantic       0.60      0.53      0.56       290
+       scifi       0.00      0.00      0.00        31
+    violence       0.56      0.67      0.61       420
+
+   micro avg       0.56      0.46      0.51      2299
+   macro avg       0.38      0.29      0.30      2299
+weighted avg       0.50      0.46      0.45      2299
+ samples avg       0.53      0.49      0.47      2299
+
+Weighted average_f1: 0.4524399972855189
+Vocab size: 5000, Max sequence length: 200, Embedding dim: 60, LSTM units: 100, batch_size: 16
+
+X_train: (8257, 200), X_test: (1188, 200)
+y_train: (8257, 9), y_test: (1188, 9)
+Model: "model_1"
+__________________________________________________________________________________________________
+ Layer (type)                   Output Shape         Param #     Connected to                     
+==================================================================================================
+ input_2 (InputLayer)           [(None, 200)]        0           []                               
+                                                                                                  
+ embedding_1 (Embedding)        (None, 200, 60)      300000      ['input_2[0][0]']                
+                                                                                                  
+ bidirectional_1 (Bidirectional  (None, 200, 200)    128800      ['embedding_1[0][0]']            
+ )                                                                                                
+                                                                                                  
+ attention_1 (Attention)        (None, 200, 200)     0           ['bidirectional_1[0][0]',        
+                                                                  'bidirectional_1[0][0]']        
+                                                                                                  
+ tf.nn.softmax_1 (TFOpLambda)   (None, 200, 200)     0           ['attention_1[0][0]']            
+                                                                                                  
+ tf.math.multiply_1 (TFOpLambda  (None, 200, 200)    0           ['tf.nn.softmax_1[0][0]',        
+ )                                                                'attention_1[0][0]']            
+                                                                                                  
+ tf.math.reduce_sum_1 (TFOpLamb  (None, 200)         0           ['tf.math.multiply_1[0][0]']     
+ da)                                                                                              
+                                                                                                  
+ dropout_1 (Dropout)            (None, 200)          0           ['tf.math.reduce_sum_1[0][0]']   
+                                                                                                  
+ dense_3 (Dense)                (None, 256)          51456       ['dropout_1[0][0]']              
+                                                                                                  
+ dense_4 (Dense)                (None, 128)          32896       ['dense_3[0][0]']                
+                                                                                                  
+ dense_5 (Dense)                (None, 9)            1161        ['dense_4[0][0]']                
+                                                                                                  
+==================================================================================================
+Total params: 514,313
+Trainable params: 514,313
+Non-trainable params: 0
+__________________________________________________________________________________________________
+Epoch 1/20
+259/259 [==============================] - 46s 160ms/step - loss: 0.4701 - accuracy: 0.2489 - val_loss: 0.4531 - val_accuracy: 0.2643
+Epoch 2/20
+259/259 [==============================] - 40s 155ms/step - loss: 0.4227 - accuracy: 0.2859 - val_loss: 0.4176 - val_accuracy: 0.2879
+Epoch 3/20
+259/259 [==============================] - 40s 155ms/step - loss: 0.3933 - accuracy: 0.3148 - val_loss: 0.4293 - val_accuracy: 0.2694
+Epoch 4/20
+259/259 [==============================] - 41s 158ms/step - loss: 0.3671 - accuracy: 0.3513 - val_loss: 0.4141 - val_accuracy: 0.3224
+Epoch 5/20
+259/259 [==============================] - 41s 157ms/step - loss: 0.3473 - accuracy: 0.3842 - val_loss: 0.4256 - val_accuracy: 0.3123
+Epoch 6/20
+259/259 [==============================] - 40s 156ms/step - loss: 0.3300 - accuracy: 0.4086 - val_loss: 0.4382 - val_accuracy: 0.3165
+Epoch 7/20
+259/259 [==============================] - 41s 157ms/step - loss: 0.3123 - accuracy: 0.4349 - val_loss: 0.4594 - val_accuracy: 0.3165
+38/38 [==============================] - 2s 62ms/step - loss: 0.4141 - accuracy: 0.3224
+Test Loss: 0.4141
+Test Accuracy: 0.3224
+38/38 [==============================] - 3s 62ms/step
+              precision    recall  f1-score   support
+
+      comedy       0.37      0.18      0.24       175
+        cult       0.30      0.23      0.26       247
+   flashback       0.44      0.20      0.28       294
+  historical       0.00      0.00      0.00        24
+      murder       0.64      0.83      0.72       581
+     revenge       0.37      0.08      0.14       237
+    romantic       0.65      0.46      0.54       290
+       scifi       0.00      0.00      0.00        31
+    violence       0.54      0.75      0.63       420
+
+   micro avg       0.55      0.48      0.51      2299
+   macro avg       0.37      0.30      0.31      2299
+weighted avg       0.50      0.48      0.46      2299
+ samples avg       0.54      0.51      0.48      2299
+
+Weighted average_f1: 0.460575921908144
+Vocab size: 5000, Max sequence length: 200, Embedding dim: 60, LSTM units: 100, batch_size: 32
+
+/opt/apps/apps/binapps/anaconda3/2019.03/lib/python3.7/site-packages/sklearn/metrics/classification.py:1143: UndefinedMetricWarning: Precision and F-score are ill-defined and being set to 0.0 in labels with no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/opt/apps/apps/binapps/anaconda3/2019.03/lib/python3.7/site-packages/sklearn/metrics/classification.py:1143: UndefinedMetricWarning: Precision and F-score are ill-defined and being set to 0.0 in samples with no predicted labels.
+  'precision', 'predicted', average, warn_for)
+
+X_train: (8257, 200), X_test: (1188, 200)
+y_train: (8257, 9), y_test: (1188, 9)
+Model: "model_2"
+__________________________________________________________________________________________________
+ Layer (type)                   Output Shape         Param #     Connected to                     
+==================================================================================================
+ input_3 (InputLayer)           [(None, 200)]        0           []                               
+                                                                                                  
+ embedding_2 (Embedding)        (None, 200, 60)      300000      ['input_3[0][0]']                
+                                                                                                  
+ bidirectional_2 (Bidirectional  (None, 200, 200)    128800      ['embedding_2[0][0]']            
+ )                                                                                                
+                                                                                                  
+ attention_2 (Attention)        (None, 200, 200)     0           ['bidirectional_2[0][0]',        
+                                                                  'bidirectional_2[0][0]']        
+                                                                                                  
+ tf.nn.softmax_2 (TFOpLambda)   (None, 200, 200)     0           ['attention_2[0][0]']            
+                                                                                                  
+ tf.math.multiply_2 (TFOpLambda  (None, 200, 200)    0           ['tf.nn.softmax_2[0][0]',        
+ )                                                                'attention_2[0][0]']            
+                                                                                                  
+ tf.math.reduce_sum_2 (TFOpLamb  (None, 200)         0           ['tf.math.multiply_2[0][0]']     
+ da)                                                                                              
+                                                                                                  
+ dropout_2 (Dropout)            (None, 200)          0           ['tf.math.reduce_sum_2[0][0]']   
+                                                                                                  
+ dense_6 (Dense)                (None, 256)          51456       ['dropout_2[0][0]']              
+                                                                                                  
+ dense_7 (Dense)                (None, 128)          32896       ['dense_6[0][0]']                
+                                                                                                  
+ dense_8 (Dense)                (None, 9)            1161        ['dense_7[0][0]']                
+                                                                                                  
+==================================================================================================
+Total params: 514,313
+Trainable params: 514,313
+Non-trainable params: 0
+__________________________________________________________________________________________________
+Epoch 1/20
+130/130 [==============================] - 37s 243ms/step - loss: 0.4778 - accuracy: 0.2581 - val_loss: 0.4566 - val_accuracy: 0.2643
+Epoch 2/20
+130/130 [==============================] - 31s 237ms/step - loss: 0.4497 - accuracy: 0.2568 - val_loss: 0.4409 - val_accuracy: 0.2231
+Epoch 3/20
+130/130 [==============================] - 31s 237ms/step - loss: 0.4114 - accuracy: 0.2891 - val_loss: 0.4153 - val_accuracy: 0.2980
+Epoch 4/20
+130/130 [==============================] - 31s 238ms/step - loss: 0.3898 - accuracy: 0.3096 - val_loss: 0.4236 - val_accuracy: 0.2736
+Epoch 5/20
+130/130 [==============================] - 31s 237ms/step - loss: 0.3744 - accuracy: 0.3318 - val_loss: 0.4181 - val_accuracy: 0.3072
+Epoch 6/20
+130/130 [==============================] - 31s 238ms/step - loss: 0.3539 - accuracy: 0.3658 - val_loss: 0.4329 - val_accuracy: 0.3106
+38/38 [==============================] - 2s 58ms/step - loss: 0.4153 - accuracy: 0.2980
+Test Loss: 0.4153
+Test Accuracy: 0.2980
+38/38 [==============================] - 3s 57ms/step
+              precision    recall  f1-score   support
+
+      comedy       0.80      0.02      0.04       175
+        cult       0.43      0.16      0.23       247
+   flashback       0.40      0.01      0.01       294
+  historical       0.00      0.00      0.00        24
+      murder       0.58      0.87      0.70       581
+     revenge       0.36      0.02      0.04       237
+    romantic       0.62      0.53      0.57       290
+       scifi       0.00      0.00      0.00        31
+    violence       0.57      0.66      0.61       420
+
+   micro avg       0.57      0.43      0.49      2299
+   macro avg       0.42      0.25      0.25      2299
+weighted avg       0.52      0.43      0.39      2299
+ samples avg       0.55      0.46      0.46      2299
+
+Weighted average_f1: 0.3939099557056272
+Vocab size: 5000, Max sequence length: 200, Embedding dim: 60, LSTM units: 100, batch_size: 64
+X_train: (8257, 200), X_test: (1188, 200)
+y_train: (8257, 9), y_test: (1188, 9)
+Model: "model_3"
+__________________________________________________________________________________________________
+ Layer (type)                   Output Shape         Param #     Connected to                     
+==================================================================================================
+ input_4 (InputLayer)           [(None, 200)]        0           []                               
+                                                                                                  
+ embedding_3 (Embedding)        (None, 200, 60)      300000      ['input_4[0][0]']                
+                                                                                                  
+ bidirectional_3 (Bidirectional  (None, 200, 200)    128800      ['embedding_3[0][0]']            
+ )                                                                                                
+                                                                                                  
+ attention_3 (Attention)        (None, 200, 200)     0           ['bidirectional_3[0][0]',        
+                                                                  'bidirectional_3[0][0]']        
+                                                                                                  
+ tf.nn.softmax_3 (TFOpLambda)   (None, 200, 200)     0           ['attention_3[0][0]']            
+                                                                                                  
+ tf.math.multiply_3 (TFOpLambda  (None, 200, 200)    0           ['tf.nn.softmax_3[0][0]',        
+ )                                                                'attention_3[0][0]']            
+                                                                                                  
+ tf.math.reduce_sum_3 (TFOpLamb  (None, 200)         0           ['tf.math.multiply_3[0][0]']     
+ da)                                                                                              
+                                                                                                  
+ dropout_3 (Dropout)            (None, 200)          0           ['tf.math.reduce_sum_3[0][0]']   
+                                                                                                  
+ dense_9 (Dense)                (None, 256)          51456       ['dropout_3[0][0]']              
+                                                                                                  
+ dense_10 (Dense)               (None, 128)          32896       ['dense_9[0][0]']                
+                                                                                                  
+ dense_11 (Dense)               (None, 9)            1161        ['dense_10[0][0]']               
+                                                                                                  
+==================================================================================================
+
+Total params: 514,313
+Trainable params: 514,313
+Non-trainable params: 0
+__________________________________________________________________________________________________
+Epoch 1/20
+65/65 [==============================] - 32s 394ms/step - loss: 0.4975 - accuracy: 0.2376 - val_loss: 0.4560 - val_accuracy: 0.2643
+Epoch 2/20
+65/65 [==============================] - 24s 374ms/step - loss: 0.4569 - accuracy: 0.2594 - val_loss: 0.4541 - val_accuracy: 0.2643
+Epoch 3/20
+65/65 [==============================] - 24s 365ms/step - loss: 0.4474 - accuracy: 0.2568 - val_loss: 0.4477 - val_accuracy: 0.2559
+Epoch 4/20
+65/65 [==============================] - 24s 366ms/step - loss: 0.4191 - accuracy: 0.2771 - val_loss: 0.4204 - val_accuracy: 0.2955
+Epoch 5/20
+65/65 [==============================] - 24s 363ms/step - loss: 0.3919 - accuracy: 0.3030 - val_loss: 0.4229 - val_accuracy: 0.2778
+Epoch 6/20
+65/65 [==============================] - 24s 366ms/step - loss: 0.3727 - accuracy: 0.3328 - val_loss: 0.4223 - val_accuracy: 0.2971
+Epoch 7/20
+65/65 [==============================] - 24s 364ms/step - loss: 0.3520 - accuracy: 0.3591 - val_loss: 0.4357 - val_accuracy: 0.3089
+38/38 [==============================] - 2s 57ms/step - loss: 0.4204 - accuracy: 0.2955
+Test Loss: 0.4204
+Test Accuracy: 0.2955
+38/38 [==============================] - 3s 59ms/step
+              precision    recall  f1-score   support
+
+      comedy       0.60      0.02      0.03       175
+        cult       0.36      0.10      0.15       247
+   flashback       0.35      0.03      0.05       294
+  historical       0.00      0.00      0.00        24
+      murder       0.57      0.91      0.70       581
+     revenge       0.32      0.07      0.12       237
+    romantic       0.67      0.49      0.56       290
+       scifi       0.00      0.00      0.00        31
+    violence       0.56      0.60      0.58       420
+
+   micro avg       0.56      0.42      0.48      2299
+   macro avg       0.38      0.25      0.24      2299
+weighted avg       0.49      0.42      0.39      2299
+ samples avg       0.54      0.45      0.45      2299
+
+Weighted average_f1: 0.39110457810932187
+Vocab size: 5000, Max sequence length: 200, Embedding dim: 60, LSTM units: 100, batch_size: 128
+X_train: (8257, 200), X_test: (1188, 200)
+y_train: (8257, 9), y_test: (1188, 9)
+Model: "model_4"
+__________________________________________________________________________________________________
+ Layer (type)                   Output Shape         Param #     Connected to                     
+==================================================================================================
+ input_5 (InputLayer)           [(None, 200)]        0           []                               
+                                                                                                  
+ embedding_4 (Embedding)        (None, 200, 60)      300000      ['input_5[0][0]']                
+                                                                                                  
+ bidirectional_4 (Bidirectional  (None, 200, 200)    128800      ['embedding_4[0][0]']            
+ )                                                                                                
+                                                                                                  
+ attention_4 (Attention)        (None, 200, 200)     0           ['bidirectional_4[0][0]',        
+                                                                  'bidirectional_4[0][0]']        
+                                                                                                  
+ tf.nn.softmax_4 (TFOpLambda)   (None, 200, 200)     0           ['attention_4[0][0]']            
+                                                                                                  
+ tf.math.multiply_4 (TFOpLambda  (None, 200, 200)    0           ['tf.nn.softmax_4[0][0]',        
+ )                                                                'attention_4[0][0]']            
+                                                                                                  
+ tf.math.reduce_sum_4 (TFOpLamb  (None, 200)         0           ['tf.math.multiply_4[0][0]']     
+ da)                                                                                              
+                                                                                                  
+ dropout_4 (Dropout)            (None, 200)          0           ['tf.math.reduce_sum_4[0][0]']   
+                                                                                                  
+ dense_12 (Dense)               (None, 256)          51456       ['dropout_4[0][0]']              
+                                                                                                  
+ dense_13 (Dense)               (None, 128)          32896       ['dense_12[0][0]']               
+                                                                                                  
+ dense_14 (Dense)               (None, 9)            1161        ['dense_13[0][0]']               
+                                                                                                  
+==================================================================================================
+Total params: 514,313
+Trainable params: 514,313
+Non-trainable params: 0
+__________________________________________________________________________________________________
+Epoch 1/20
+33/33 [==============================] - 29s 740ms/step - loss: 0.5390 - accuracy: 0.2475 - val_loss: 0.4606 - val_accuracy: 0.2643
+Epoch 2/20
+33/33 [==============================] - 22s 655ms/step - loss: 0.4602 - accuracy: 0.2594 - val_loss: 0.4548 - val_accuracy: 0.2643
+Epoch 3/20
+33/33 [==============================] - 23s 686ms/step - loss: 0.4573 - accuracy: 0.2594 - val_loss: 0.4531 - val_accuracy: 0.2643
+Epoch 4/20
+33/33 [==============================] - 22s 655ms/step - loss: 0.4519 - accuracy: 0.2594 - val_loss: 0.4520 - val_accuracy: 0.2643
+Epoch 5/20
+33/33 [==============================] - 22s 668ms/step - loss: 0.4442 - accuracy: 0.2589 - val_loss: 0.4527 - val_accuracy: 0.2643
+Epoch 6/20
+33/33 [==============================] - 21s 651ms/step - loss: 0.4350 - accuracy: 0.2545 - val_loss: 0.4421 - val_accuracy: 0.2424
+Epoch 7/20
+33/33 [==============================] - 22s 673ms/step - loss: 0.4053 - accuracy: 0.2876 - val_loss: 0.4306 - val_accuracy: 0.2786
+Epoch 8/20
+33/33 [==============================] - 23s 683ms/step - loss: 0.3864 - accuracy: 0.3073 - val_loss: 0.4302 - val_accuracy: 0.2904
+Epoch 9/20
+33/33 [==============================] - 24s 714ms/step - loss: 0.3743 - accuracy: 0.3211 - val_loss: 0.4302 - val_accuracy: 0.2769
+Epoch 10/20
+33/33 [==============================] - 23s 700ms/step - loss: 0.3637 - accuracy: 0.3326 - val_loss: 0.4437 - val_accuracy: 0.2845
+Epoch 11/20
+33/33 [==============================] - 23s 689ms/step - loss: 0.3558 - accuracy: 0.3489 - val_loss: 0.4630 - val_accuracy: 0.2837
+38/38 [==============================] - 2s 57ms/step - loss: 0.4302 - accuracy: 0.2904
+Test Loss: 0.4302
+Test Accuracy: 0.2904
+38/38 [==============================] - 3s 58ms/step
+              precision    recall  f1-score   support
+
+      comedy       0.24      0.09      0.13       175
+        cult       0.32      0.19      0.24       247
+   flashback       0.33      0.12      0.17       294
+  historical       0.00      0.00      0.00        24
+      murder       0.59      0.86      0.70       581
+     revenge       0.35      0.14      0.20       237
+    romantic       0.65      0.49      0.56       290
+       scifi       0.00      0.00      0.00        31
+    violence       0.56      0.63      0.59       420
+
+   micro avg       0.53      0.45      0.49      2299
+   macro avg       0.34      0.28      0.29      2299
+weighted avg       0.46      0.45      0.43      2299
+ samples avg       0.52      0.47      0.45      2299
+
+Weighted average_f1: 0.432621085891409
+Vocab size: 5000, Max sequence length: 200, Embedding dim: 60, LSTM units: 100, batch_size: 256
+X_train: (8257, 200), X_test: (1188, 200)
+y_train: (8257, 9), y_test: (1188, 9)
+
+Model: "model_5"
+__________________________________________________________________________________________________
+ Layer (type)                   Output Shape         Param #     Connected to                     
+==================================================================================================
+ input_6 (InputLayer)           [(None, 200)]        0           []                               
+                                                                                                  
+ embedding_5 (Embedding)        (None, 200, 60)      300000      ['input_6[0][0]']                
+                                                                                                  
+ bidirectional_5 (Bidirectional  (None, 200, 300)    253200      ['embedding_5[0][0]']            
+ )                                                                                                
+                                                                                                  
+ attention_5 (Attention)        (None, 200, 300)     0           ['bidirectional_5[0][0]',        
+                                                                  'bidirectional_5[0][0]']        
+                                                                                                  
+ tf.nn.softmax_5 (TFOpLambda)   (None, 200, 300)     0           ['attention_5[0][0]']            
+                                                                                                  
+ tf.math.multiply_5 (TFOpLambda  (None, 200, 300)    0           ['tf.nn.softmax_5[0][0]',        
+ )                                                                'attention_5[0][0]']            
+                                                                                                  
+ tf.math.reduce_sum_5 (TFOpLamb  (None, 300)         0           ['tf.math.multiply_5[0][0]']     
+ da)                                                                                              
+                                                                                                  
+ dropout_5 (Dropout)            (None, 300)          0           ['tf.math.reduce_sum_5[0][0]']   
+                                                                                                  
+ dense_15 (Dense)               (None, 256)          77056       ['dropout_5[0][0]']              
+                                                                                                  
+ dense_16 (Dense)               (None, 128)          32896       ['dense_15[0][0]']               
+                                                                                                  
+ dense_17 (Dense)               (None, 9)            1161        ['dense_16[0][0]']               
+                                                                                                  
+==================================================================================================
+Total params: 664,313
+Trainable params: 664,313
+Non-trainable params: 0
+__________________________________________________________________________________________________
+Epoch 1/20
+517/517 [==============================] - 78s 140ms/step - loss: 0.4633 - accuracy: 0.2513 - val_loss: 0.4339 - val_accuracy: 0.2803
+Epoch 2/20
+517/517 [==============================] - 72s 139ms/step - loss: 0.4147 - accuracy: 0.2914 - val_loss: 0.4111 - val_accuracy: 0.3056
+Epoch 3/20
+517/517 [==============================] - 71s 138ms/step - loss: 0.3846 - accuracy: 0.3338 - val_loss: 0.4127 - val_accuracy: 0.3047
+Epoch 4/20
+517/517 [==============================] - 71s 138ms/step - loss: 0.3569 - accuracy: 0.3770 - val_loss: 0.4232 - val_accuracy: 0.3485
+Epoch 5/20
+517/517 [==============================] - 72s 138ms/step - loss: 0.3325 - accuracy: 0.4117 - val_loss: 0.4450 - val_accuracy: 0.3258
+38/38 [==============================] - 3s 76ms/step - loss: 0.4111 - accuracy: 0.3056
+Test Loss: 0.4111
+Test Accuracy: 0.3056
+38/38 [==============================] - 5s 78ms/step
+              precision    recall  f1-score   support
+
+      comedy       0.65      0.06      0.11       175
+        cult       0.50      0.12      0.20       247
+   flashback       0.26      0.02      0.04       294
+  historical       0.00      0.00      0.00        24
+      murder       0.61      0.83      0.70       581
+     revenge       0.36      0.03      0.06       237
+    romantic       0.57      0.64      0.60       290
+       scifi       0.00      0.00      0.00        31
+    violence       0.57      0.65      0.61       420
+
+   micro avg       0.58      0.43      0.50      2299
+   macro avg       0.39      0.26      0.26      2299
+weighted avg       0.50      0.43      0.41      2299
+ samples avg       0.56      0.47      0.47      2299
+
+Weighted average_f1: 0.4067296368494575
+Vocab size: 5000, Max sequence length: 200, Embedding dim: 60, LSTM units: 150, batch_size: 16
+X_train: (8257, 200), X_test: (1188, 200)
+y_train: (8257, 9), y_test: (1188, 9)
+Model: "model_6"
+__________________________________________________________________________________________________
+ Layer (type)                   Output Shape         Param #     Connected to                     
+==================================================================================================
+ input_7 (InputLayer)           [(None, 200)]        0           []                               
+                                                                                                  
+ embedding_6 (Embedding)        (None, 200, 60)      300000      ['input_7[0][0]']                
+                                                                                                  
+ bidirectional_6 (Bidirectional  (None, 200, 300)    253200      ['embedding_6[0][0]']            
+ )                                                                                                
+                                                                                                  
+ attention_6 (Attention)        (None, 200, 300)     0           ['bidirectional_6[0][0]',        
+                                                                  'bidirectional_6[0][0]']        
+                                                                                                  
+ tf.nn.softmax_6 (TFOpLambda)   (None, 200, 300)     0           ['attention_6[0][0]']            
+                                                                                                  
+ tf.math.multiply_6 (TFOpLambda  (None, 200, 300)    0           ['tf.nn.softmax_6[0][0]',        
+ )                                                                'attention_6[0][0]']            
+                                                                                                  
+ tf.math.reduce_sum_6 (TFOpLamb  (None, 300)         0           ['tf.math.multiply_6[0][0]']     
+ da)                                                                                              
+                                                                                                  
+ dropout_6 (Dropout)            (None, 300)          0           ['tf.math.reduce_sum_6[0][0]']   
+                                                                                                  
+ dense_18 (Dense)               (None, 256)          77056       ['dropout_6[0][0]']              
+                                                                                                  
+ dense_19 (Dense)               (None, 128)          32896       ['dense_18[0][0]']               
+                                                                                                  
+ dense_20 (Dense)               (None, 9)            1161        ['dense_19[0][0]']               
+                                                                                                  
+==================================================================================================
+Total params: 664,313
+Trainable params: 664,313
+Non-trainable params: 0
+__________________________________________________________________________________________________
+
+Epoch 1/20
+259/259 [==============================] - 57s 200ms/step - loss: 0.4676 - accuracy: 0.2531 - val_loss: 0.4573 - val_accuracy: 0.2618
+Epoch 2/20
+259/259 [==============================] - 51s 196ms/step - loss: 0.4289 - accuracy: 0.2784 - val_loss: 0.4233 - val_accuracy: 0.2837
+Epoch 3/20
+259/259 [==============================] - 51s 197ms/step - loss: 0.3977 - accuracy: 0.3053 - val_loss: 0.4157 - val_accuracy: 0.2896
+Epoch 4/20
+259/259 [==============================] - 51s 196ms/step - loss: 0.3747 - accuracy: 0.3367 - val_loss: 0.4143 - val_accuracy: 0.3089
+Epoch 5/20
+259/259 [==============================] - 51s 195ms/step - loss: 0.3534 - accuracy: 0.3678 - val_loss: 0.4332 - val_accuracy: 0.3157
+Epoch 6/20
+259/259 [==============================] - 51s 196ms/step - loss: 0.3353 - accuracy: 0.3966 - val_loss: 0.4409 - val_accuracy: 0.3173
+Epoch 7/20
+259/259 [==============================] - 51s 196ms/step - loss: 0.3157 - accuracy: 0.4232 - val_loss: 0.4479 - val_accuracy: 0.3401
+38/38 [==============================] - 3s 76ms/step - loss: 0.4143 - accuracy: 0.3089
+Test Loss: 0.4143
+Test Accuracy: 0.3089
+38/38 [==============================] - 4s 78ms/step
+              precision    recall  f1-score   support
+
+      comedy       0.33      0.11      0.17       175
+        cult       0.38      0.22      0.28       247
+   flashback       0.37      0.12      0.18       294
+  historical       0.00      0.00      0.00        24
+      murder       0.61      0.86      0.71       581
+     revenge       0.40      0.18      0.25       237
+    romantic       0.57      0.62      0.59       290
+       scifi       0.00      0.00      0.00        31
+    violence       0.57      0.67      0.61       420
+
+   micro avg       0.55      0.48      0.51      2299
+   macro avg       0.36      0.31      0.31      2299
+weighted avg       0.48      0.48      0.46      2299
+ samples avg       0.54      0.51      0.48      2299
+
+Weighted average_f1: 0.45906235552739283
+Vocab size: 5000, Max sequence length: 200, Embedding dim: 60, LSTM units: 150, batch_size: 32
+X_train: (8257, 200), X_test: (1188, 200)
+y_train: (8257, 9), y_test: (1188, 9)
+Model: "model_7"
+__________________________________________________________________________________________________
+ Layer (type)                   Output Shape         Param #     Connected to                     
+==================================================================================================
+ input_8 (InputLayer)           [(None, 200)]        0           []                               
+                                                                                                  
+ embedding_7 (Embedding)        (None, 200, 60)      300000      ['input_8[0][0]']                
+                                                                                                  
+ bidirectional_7 (Bidirectional  (None, 200, 300)    253200      ['embedding_7[0][0]']            
+ )                                                                                                
+                                                                                                  
+ attention_7 (Attention)        (None, 200, 300)     0           ['bidirectional_7[0][0]',        
+                                                                  'bidirectional_7[0][0]']        
+                                                                                                  
+ tf.nn.softmax_7 (TFOpLambda)   (None, 200, 300)     0           ['attention_7[0][0]']            
+                                                                                                  
+ tf.math.multiply_7 (TFOpLambda  (None, 200, 300)    0           ['tf.nn.softmax_7[0][0]',        
+ )                                                                'attention_7[0][0]']            
+                                                                                                  
+ tf.math.reduce_sum_7 (TFOpLamb  (None, 300)         0           ['tf.math.multiply_7[0][0]']     
+ da)                                                                                              
+                                                                                                  
+ dropout_7 (Dropout)            (None, 300)          0           ['tf.math.reduce_sum_7[0][0]']   
+                                                                                                  
+ dense_21 (Dense)               (None, 256)          77056       ['dropout_7[0][0]']              
+                                                                                                  
+ dense_22 (Dense)               (None, 128)          32896       ['dense_21[0][0]']               
+                                                                                                  
+ dense_23 (Dense)               (None, 9)            1161        ['dense_22[0][0]']               
+                                                                                                  
+==================================================================================================
+Total params: 664,313
+Trainable params: 664,313
+Non-trainable params: 0
+__________________________________________________________________________________________________
+Epoch 1/20
+130/130 [==============================] - 44s 298ms/step - loss: 0.4777 - accuracy: 0.2543 - val_loss: 0.4554 - val_accuracy: 0.2643
+Epoch 2/20
+130/130 [==============================] - 38s 291ms/step - loss: 0.4440 - accuracy: 0.2622 - val_loss: 0.4240 - val_accuracy: 0.2980
+Epoch 3/20
+130/130 [==============================] - 38s 291ms/step - loss: 0.4080 - accuracy: 0.2970 - val_loss: 0.4175 - val_accuracy: 0.3081
+Epoch 4/20
+130/130 [==============================] - 38s 292ms/step - loss: 0.3889 - accuracy: 0.3132 - val_loss: 0.4221 - val_accuracy: 0.2955
+Epoch 5/20
+130/130 [==============================] - 38s 290ms/step - loss: 0.3753 - accuracy: 0.3341 - val_loss: 0.4214 - val_accuracy: 0.3064
+Epoch 6/20
+130/130 [==============================] - 38s 290ms/step - loss: 0.3555 - accuracy: 0.3678 - val_loss: 0.4352 - val_accuracy: 0.3148
+38/38 [==============================] - 3s 74ms/step - loss: 0.4175 - accuracy: 0.3081
+Test Loss: 0.4175
+Test Accuracy: 0.3081
+38/38 [==============================] - 4s 77ms/step
+              precision    recall  f1-score   support
+
+      comedy       0.29      0.05      0.08       175
+        cult       0.41      0.21      0.28       247
+   flashback       0.30      0.04      0.07       294
+  historical       0.00      0.00      0.00        24
+      murder       0.59      0.87      0.70       581
+     revenge       0.35      0.05      0.09       237
+    romantic       0.57      0.59      0.58       290
+       scifi       0.00      0.00      0.00        31
+    violence       0.59      0.59      0.59       420
+
+   micro avg       0.56      0.44      0.49      2299
+   macro avg       0.34      0.27      0.27      2299
+weighted avg       0.47      0.44      0.41      2299
+ samples avg       0.56      0.47      0.46      2299
+
+Weighted average_f1: 0.4132480754546694
+Vocab size: 5000, Max sequence length: 200, Embedding dim: 60, LSTM units: 150, batch_size: 64
+X_train: (8257, 200), X_test: (1188, 200)
+y_train: (8257, 9), y_test: (1188, 9)
+Model: "model_8"
+__________________________________________________________________________________________________
+ Layer (type)                   Output Shape         Param #     Connected to                     
+==================================================================================================
+ input_9 (InputLayer)           [(None, 200)]        0           []                               
+                                                                                                  
+ embedding_8 (Embedding)        (None, 200, 60)      300000      ['input_9[0][0]']                
+                                                                                                  
+ bidirectional_8 (Bidirectional  (None, 200, 300)    253200      ['embedding_8[0][0]']            
+ )                                                                                                
+
+                                                                                                  
+ attention_8 (Attention)        (None, 200, 300)     0           ['bidirectional_8[0][0]',        
+                                                                  'bidirectional_8[0][0]']        
+                                                                                                  
+ tf.nn.softmax_8 (TFOpLambda)   (None, 200, 300)     0           ['attention_8[0][0]']            
+                                                                                                  
+ tf.math.multiply_8 (TFOpLambda  (None, 200, 300)    0           ['tf.nn.softmax_8[0][0]',        
+ )                                                                'attention_8[0][0]']            
+                                                                                                  
+ tf.math.reduce_sum_8 (TFOpLamb  (None, 300)         0           ['tf.math.multiply_8[0][0]']     
+ da)                                                                                              
+                                                                                                  
+ dropout_8 (Dropout)            (None, 300)          0           ['tf.math.reduce_sum_8[0][0]']   
+                                                                                                  
+ dense_24 (Dense)               (None, 256)          77056       ['dropout_8[0][0]']              
+                                                                                                  
+ dense_25 (Dense)               (None, 128)          32896       ['dense_24[0][0]']               
+                                                                                                  
+ dense_26 (Dense)               (None, 9)            1161        ['dense_25[0][0]']               
+                                                                                                  
+==================================================================================================
+Total params: 664,313
+Trainable params: 664,313
+Non-trainable params: 0
+__________________________________________________________________________________________________
+Epoch 1/20
+65/65 [==============================] - 40s 539ms/step - loss: 0.4917 - accuracy: 0.2506 - val_loss: 0.4557 - val_accuracy: 0.2643
+Epoch 2/20
+65/65 [==============================] - 34s 528ms/step - loss: 0.4578 - accuracy: 0.2594 - val_loss: 0.4518 - val_accuracy: 0.2643
+Epoch 3/20
+65/65 [==============================] - 35s 538ms/step - loss: 0.4417 - accuracy: 0.2551 - val_loss: 0.4353 - val_accuracy: 0.2643
+Epoch 4/20
+65/65 [==============================] - 35s 538ms/step - loss: 0.4098 - accuracy: 0.2827 - val_loss: 0.4190 - val_accuracy: 0.3022
+Epoch 5/20
+65/65 [==============================] - 35s 538ms/step - loss: 0.3899 - accuracy: 0.3045 - val_loss: 0.4236 - val_accuracy: 0.2786
+Epoch 6/20
+65/65 [==============================] - 36s 549ms/step - loss: 0.3761 - accuracy: 0.3156 - val_loss: 0.4330 - val_accuracy: 0.2668
+Epoch 7/20
+65/65 [==============================] - 35s 539ms/step - loss: 0.3643 - accuracy: 0.3406 - val_loss: 0.4426 - val_accuracy: 0.3064
+38/38 [==============================] - 3s 78ms/step - loss: 0.4190 - accuracy: 0.3022
+Test Loss: 0.4190
+Test Accuracy: 0.3022
+38/38 [==============================] - 5s 75ms/step
+              precision    recall  f1-score   support
+
+      comedy       0.50      0.03      0.06       175
+        cult       0.39      0.18      0.24       247
+   flashback       0.33      0.02      0.03       294
+  historical       0.00      0.00      0.00        24
+      murder       0.57      0.89      0.69       581
+     revenge       0.31      0.09      0.14       237
+    romantic       0.67      0.51      0.58       290
+       scifi       0.00      0.00      0.00        31
+    violence       0.57      0.66      0.61       420
+
+   micro avg       0.56      0.45      0.50      2299
+   macro avg       0.37      0.27      0.26      2299
+weighted avg       0.49      0.45      0.41      2299
+ samples avg       0.54      0.47      0.47      2299
+
+Weighted average_f1: 0.4109041894781034
+Vocab size: 5000, Max sequence length: 200, Embedding dim: 60, LSTM units: 150, batch_size: 128
+X_train: (8257, 200), X_test: (1188, 200)
+y_train: (8257, 9), y_test: (1188, 9)
+Model: "model_9"
+__________________________________________________________________________________________________
+ Layer (type)                   Output Shape         Param #     Connected to                     
+==================================================================================================
+ input_10 (InputLayer)          [(None, 200)]        0           []                               
+                                                                                                  
+ embedding_9 (Embedding)        (None, 200, 60)      300000      ['input_10[0][0]']               
+                                                                                                  
+ bidirectional_9 (Bidirectional  (None, 200, 300)    253200      ['embedding_9[0][0]']            
+ )                                                                                                
+                                                                                                  
+ attention_9 (Attention)        (None, 200, 300)     0           ['bidirectional_9[0][0]',        
+                                                                  'bidirectional_9[0][0]']        
+                                                                                                  
+ tf.nn.softmax_9 (TFOpLambda)   (None, 200, 300)     0           ['attention_9[0][0]']            
+                                                                                                  
+ tf.math.multiply_9 (TFOpLambda  (None, 200, 300)    0           ['tf.nn.softmax_9[0][0]',        
+ )                                                                'attention_9[0][0]']            
+                                                                                                  
+ tf.math.reduce_sum_9 (TFOpLamb  (None, 300)         0           ['tf.math.multiply_9[0][0]']     
+ da)                                                                                              
+                                                                                                  
+ dropout_9 (Dropout)            (None, 300)          0           ['tf.math.reduce_sum_9[0][0]']   
+                                                                                                  
+ dense_27 (Dense)               (None, 256)          77056       ['dropout_9[0][0]']              
+                                                                                                  
+ dense_28 (Dense)               (None, 128)          32896       ['dense_27[0][0]']               
+                                                                                                  
+ dense_29 (Dense)               (None, 9)            1161        ['dense_28[0][0]']               
+                                                                                                  
+==================================================================================================
+Total params: 664,313
+Trainable params: 664,313
+Non-trainable params: 0
+__________________________________________________________________________________________________
+Epoch 1/20
+33/33 [==============================] - 37s 967ms/step - loss: 0.5284 - accuracy: 0.2442 - val_loss: 0.4595 - val_accuracy: 0.2643
+Epoch 2/20
+33/33 [==============================] - 32s 969ms/step - loss: 0.4609 - accuracy: 0.2594 - val_loss: 0.4556 - val_accuracy: 0.2643
+Epoch 3/20
+33/33 [==============================] - 33s 1s/step - loss: 0.4576 - accuracy: 0.2594 - val_loss: 0.4553 - val_accuracy: 0.2643
+Epoch 4/20
+33/33 [==============================] - 34s 1s/step - loss: 0.4544 - accuracy: 0.2594 - val_loss: 0.4521 - val_accuracy: 0.2643
+Epoch 5/20
+
+33/33 [==============================] - 33s 996ms/step - loss: 0.4461 - accuracy: 0.2592 - val_loss: 0.4535 - val_accuracy: 0.2635
+Epoch 6/20
+33/33 [==============================] - 33s 1s/step - loss: 0.4372 - accuracy: 0.2517 - val_loss: 0.4526 - val_accuracy: 0.2567
+Epoch 7/20
+33/33 [==============================] - 33s 1s/step - loss: 0.4255 - accuracy: 0.2428 - val_loss: 0.4444 - val_accuracy: 0.2753
+Epoch 8/20
+33/33 [==============================] - 34s 1s/step - loss: 0.4017 - accuracy: 0.2876 - val_loss: 0.4288 - val_accuracy: 0.2795
+Epoch 9/20
+33/33 [==============================] - 34s 1s/step - loss: 0.3840 - accuracy: 0.3010 - val_loss: 0.4307 - val_accuracy: 0.2609
+Epoch 10/20
+33/33 [==============================] - 34s 1s/step - loss: 0.3724 - accuracy: 0.3087 - val_loss: 0.4366 - val_accuracy: 0.2786
+Epoch 11/20
+33/33 [==============================] - 34s 1s/step - loss: 0.3614 - accuracy: 0.3361 - val_loss: 0.4382 - val_accuracy: 0.2769
+38/38 [==============================] - 3s 76ms/step - loss: 0.4288 - accuracy: 0.2795
+Test Loss: 0.4288
+Test Accuracy: 0.2795
+38/38 [==============================] - 4s 78ms/step
+              precision    recall  f1-score   support
+
+      comedy       0.37      0.04      0.07       175
+        cult       0.34      0.09      0.15       247
+   flashback       0.29      0.03      0.06       294
+  historical       0.00      0.00      0.00        24
+      murder       0.57      0.88      0.69       581
+     revenge       0.37      0.11      0.16       237
+    romantic       0.66      0.48      0.55       290
+       scifi       0.00      0.00      0.00        31
+    violence       0.53      0.71      0.61       420
+
+   micro avg       0.55      0.44      0.49      2299
+   macro avg       0.35      0.26      0.25      2299
+weighted avg       0.47      0.44      0.40      2299
+ samples avg       0.52      0.47      0.45      2299
+
+Weighted average_f1: 0.4013999774721049
+Vocab size: 5000, Max sequence length: 200, Embedding dim: 60, LSTM units: 150, batch_size: 256
+X_train: (8257, 200), X_test: (1188, 200)
+y_train: (8257, 9), y_test: (1188, 9)
+Model: "model_10"
+__________________________________________________________________________________________________
+ Layer (type)                   Output Shape         Param #     Connected to                     
+==================================================================================================
+ input_11 (InputLayer)          [(None, 200)]        0           []                               
+                                                                                                  
+ embedding_10 (Embedding)       (None, 200, 60)      300000      ['input_11[0][0]']               
+                                                                                                  
+ bidirectional_10 (Bidirectiona  (None, 200, 400)    417600      ['embedding_10[0][0]']           
+ l)                                                                                               
+                                                                                                  
+ attention_10 (Attention)       (None, 200, 400)     0           ['bidirectional_10[0][0]',       
+                                                                  'bidirectional_10[0][0]']       
+                                                                                                  
+ tf.nn.softmax_10 (TFOpLambda)  (None, 200, 400)     0           ['attention_10[0][0]']           
+                                                                                                  
+ tf.math.multiply_10 (TFOpLambd  (None, 200, 400)    0           ['tf.nn.softmax_10[0][0]',       
+ a)                                                               'attention_10[0][0]']           
+                                                                                                  
+ tf.math.reduce_sum_10 (TFOpLam  (None, 400)         0           ['tf.math.multiply_10[0][0]']    
+ bda)                                                                                             
+                                                                                                  
+ dropout_10 (Dropout)           (None, 400)          0           ['tf.math.reduce_sum_10[0][0]']  
+                                                                                                  
+ dense_30 (Dense)               (None, 256)          102656      ['dropout_10[0][0]']             
+                                                                                                  
+ dense_31 (Dense)               (None, 128)          32896       ['dense_30[0][0]']               
+                                                                                                  
+ dense_32 (Dense)               (None, 9)            1161        ['dense_31[0][0]']               
+                                                                                                  
+==================================================================================================
+Total params: 854,313
+Trainable params: 854,313
+Non-trainable params: 0
+__________________________________________________________________________________________________
+Epoch 1/20
+517/517 [==============================] - 93s 168ms/step - loss: 0.4593 - accuracy: 0.2592 - val_loss: 0.4229 - val_accuracy: 0.2912
+Epoch 2/20
+517/517 [==============================] - 86s 167ms/step - loss: 0.4111 - accuracy: 0.3030 - val_loss: 0.4096 - val_accuracy: 0.3165
+Epoch 3/20
+517/517 [==============================] - 87s 167ms/step - loss: 0.3789 - accuracy: 0.3469 - val_loss: 0.4095 - val_accuracy: 0.3215
+Epoch 4/20
+517/517 [==============================] - 86s 167ms/step - loss: 0.3529 - accuracy: 0.3885 - val_loss: 0.4204 - val_accuracy: 0.3325
+Epoch 5/20
+517/517 [==============================] - 87s 167ms/step - loss: 0.3299 - accuracy: 0.4215 - val_loss: 0.4350 - val_accuracy: 0.3359
+Epoch 6/20
+517/517 [==============================] - 87s 167ms/step - loss: 0.3092 - accuracy: 0.4494 - val_loss: 0.4406 - val_accuracy: 0.3291
+38/38 [==============================] - 3s 89ms/step - loss: 0.4095 - accuracy: 0.3215
+Test Loss: 0.4095
+Test Accuracy: 0.3215
+38/38 [==============================] - 4s 89ms/step
+              precision    recall  f1-score   support
+
+      comedy       0.33      0.19      0.24       175
+        cult       0.33      0.30      0.32       247
+   flashback       0.52      0.27      0.36       294
+  historical       0.00      0.00      0.00        24
+      murder       0.65      0.82      0.72       581
+     revenge       0.29      0.15      0.20       237
+    romantic       0.61      0.54      0.57       290
+       scifi       0.00      0.00      0.00        31
+    violence       0.55      0.75      0.64       420
+
+   micro avg       0.54      0.51      0.53      2299
+   macro avg       0.36      0.34      0.34      2299
+weighted avg       0.50      0.51      0.49      2299
+ samples avg       0.54      0.54      0.50      2299
+
+Weighted average_f1: 0.489904159606575
+Vocab size: 5000, Max sequence length: 200, Embedding dim: 60, LSTM units: 200, batch_size: 16
+X_train: (8257, 200), X_test: (1188, 200)
+y_train: (8257, 9), y_test: (1188, 9)
+Model: "model_11"
+__________________________________________________________________________________________________
+ Layer (type)                   Output Shape         Param #     Connected to                     
+==================================================================================================
+ input_12 (InputLayer)          [(None, 200)]        0           []                               
+                                                                                                  
+ embedding_11 (Embedding)       (None, 200, 60)      300000      ['input_12[0][0]']               
+                                                                                                  
+ bidirectional_11 (Bidirectiona  (None, 200, 400)    417600      ['embedding_11[0][0]']           
+ l)                                                                                               
+
+                                                                                                  
+ attention_11 (Attention)       (None, 200, 400)     0           ['bidirectional_11[0][0]',       
+                                                                  'bidirectional_11[0][0]']       
+                                                                                                  
+ tf.nn.softmax_11 (TFOpLambda)  (None, 200, 400)     0           ['attention_11[0][0]']           
+                                                                                                  
+ tf.math.multiply_11 (TFOpLambd  (None, 200, 400)    0           ['tf.nn.softmax_11[0][0]',       
+ a)                                                               'attention_11[0][0]']           
+                                                                                                  
+ tf.math.reduce_sum_11 (TFOpLam  (None, 400)         0           ['tf.math.multiply_11[0][0]']    
+ bda)                                                                                             
+                                                                                                  
+ dropout_11 (Dropout)           (None, 400)          0           ['tf.math.reduce_sum_11[0][0]']  
+                                                                                                  
+ dense_33 (Dense)               (None, 256)          102656      ['dropout_11[0][0]']             
+                                                                                                  
+ dense_34 (Dense)               (None, 128)          32896       ['dense_33[0][0]']               
+                                                                                                  
+ dense_35 (Dense)               (None, 9)            1161        ['dense_34[0][0]']               
+                                                                                                  
+==================================================================================================
+Total params: 854,313
+Trainable params: 854,313
+Non-trainable params: 0
+__________________________________________________________________________________________________
+Epoch 1/20
+259/259 [==============================] - 69s 250ms/step - loss: 0.4702 - accuracy: 0.2491 - val_loss: 0.4540 - val_accuracy: 0.2643
+Epoch 2/20
+259/259 [==============================] - 65s 250ms/step - loss: 0.4308 - accuracy: 0.2759 - val_loss: 0.4146 - val_accuracy: 0.3022
+Epoch 3/20
+259/259 [==============================] - 64s 248ms/step - loss: 0.3973 - accuracy: 0.3050 - val_loss: 0.4252 - val_accuracy: 0.2887
+Epoch 4/20
+259/259 [==============================] - 64s 246ms/step - loss: 0.3801 - accuracy: 0.3374 - val_loss: 0.4209 - val_accuracy: 0.3098
+Epoch 5/20
+259/259 [==============================] - 64s 246ms/step - loss: 0.3565 - accuracy: 0.3711 - val_loss: 0.4221 - val_accuracy: 0.2988
+38/38 [==============================] - 3s 89ms/step - loss: 0.4146 - accuracy: 0.3022
+Test Loss: 0.4146
+Test Accuracy: 0.3022
+38/38 [==============================] - 4s 88ms/step
+              precision    recall  f1-score   support
+
+      comedy       0.29      0.03      0.06       175
+        cult       0.45      0.11      0.18       247
+   flashback       0.50      0.00      0.01       294
+  historical       0.00      0.00      0.00        24
+      murder       0.60      0.87      0.71       581
+     revenge       0.29      0.06      0.10       237
+    romantic       0.60      0.57      0.59       290
+       scifi       0.00      0.00      0.00        31
+    violence       0.52      0.75      0.61       420
+
+   micro avg       0.55      0.45      0.50      2299
+   macro avg       0.36      0.27      0.25      2299
+weighted avg       0.49      0.45      0.40      2299
+ samples avg       0.54      0.49      0.47      2299
+
+Weighted average_f1: 0.40083832505530365
+Vocab size: 5000, Max sequence length: 200, Embedding dim: 60, LSTM units: 200, batch_size: 32
+X_train: (8257, 200), X_test: (1188, 200)
+y_train: (8257, 9), y_test: (1188, 9)
+Model: "model_12"
+__________________________________________________________________________________________________
+ Layer (type)                   Output Shape         Param #     Connected to                     
+==================================================================================================
+ input_13 (InputLayer)          [(None, 200)]        0           []                               
+                                                                                                  
+ embedding_12 (Embedding)       (None, 200, 60)      300000      ['input_13[0][0]']               
+                                                                                                  
+ bidirectional_12 (Bidirectiona  (None, 200, 400)    417600      ['embedding_12[0][0]']           
+ l)                                                                                               
+                                                                                                  
+ attention_12 (Attention)       (None, 200, 400)     0           ['bidirectional_12[0][0]',       
+                                                                  'bidirectional_12[0][0]']       
+                                                                                                  
+ tf.nn.softmax_12 (TFOpLambda)  (None, 200, 400)     0           ['attention_12[0][0]']           
+                                                                                                  
+ tf.math.multiply_12 (TFOpLambd  (None, 200, 400)    0           ['tf.nn.softmax_12[0][0]',       
+ a)                                                               'attention_12[0][0]']           
+                                                                                                  
+ tf.math.reduce_sum_12 (TFOpLam  (None, 400)         0           ['tf.math.multiply_12[0][0]']    
+ bda)                                                                                             
+                                                                                                  
+ dropout_12 (Dropout)           (None, 400)          0           ['tf.math.reduce_sum_12[0][0]']  
+                                                                                                  
+ dense_36 (Dense)               (None, 256)          102656      ['dropout_12[0][0]']             
+                                                                                                  
+ dense_37 (Dense)               (None, 128)          32896       ['dense_36[0][0]']               
+                                                                                                  
+ dense_38 (Dense)               (None, 9)            1161        ['dense_37[0][0]']               
+                                                                                                  
+==================================================================================================
+Total params: 854,313
+Trainable params: 854,313
+Non-trainable params: 0
+__________________________________________________________________________________________________
+Epoch 1/20
+130/130 [==============================] - 58s 412ms/step - loss: 0.4779 - accuracy: 0.2505 - val_loss: 0.4592 - val_accuracy: 0.2643
+Epoch 2/20
+130/130 [==============================] - 51s 392ms/step - loss: 0.4544 - accuracy: 0.2449 - val_loss: 0.4461 - val_accuracy: 0.2694
+Epoch 3/20
+130/130 [==============================] - 51s 393ms/step - loss: 0.4177 - accuracy: 0.2869 - val_loss: 0.4182 - val_accuracy: 0.3039
+Epoch 4/20
+130/130 [==============================] - 51s 394ms/step - loss: 0.3952 - accuracy: 0.3028 - val_loss: 0.4298 - val_accuracy: 0.2677
+Epoch 5/20
+130/130 [==============================] - 51s 396ms/step - loss: 0.3822 - accuracy: 0.3169 - val_loss: 0.4235 - val_accuracy: 0.2744
+Epoch 6/20
+130/130 [==============================] - 51s 396ms/step - loss: 0.3677 - accuracy: 0.3366 - val_loss: 0.4259 - val_accuracy: 0.2946
+
+38/38 [==============================] - 3s 90ms/step - loss: 0.4182 - accuracy: 0.3039
+Test Loss: 0.4182
+Test Accuracy: 0.3039
+38/38 [==============================] - 4s 91ms/step
+              precision    recall  f1-score   support
+
+      comedy       0.40      0.02      0.04       175
+        cult       0.45      0.09      0.15       247
+   flashback       0.43      0.02      0.04       294
+  historical       0.00      0.00      0.00        24
+      murder       0.57      0.90      0.70       581
+     revenge       0.47      0.08      0.13       237
+    romantic       0.71      0.39      0.50       290
+       scifi       0.00      0.00      0.00        31
+    violence       0.56      0.65      0.60       420
+
+   micro avg       0.57      0.42      0.48      2299
+   macro avg       0.40      0.24      0.24      2299
+weighted avg       0.52      0.42      0.39      2299
+ samples avg       0.52      0.44      0.45      2299
+
+Weighted average_f1: 0.3876908393562271
+Vocab size: 5000, Max sequence length: 200, Embedding dim: 60, LSTM units: 200, batch_size: 64
+X_train: (8257, 200), X_test: (1188, 200)
+y_train: (8257, 9), y_test: (1188, 9)
+Model: "model_13"
+__________________________________________________________________________________________________
+ Layer (type)                   Output Shape         Param #     Connected to                     
+==================================================================================================
+ input_14 (InputLayer)          [(None, 200)]        0           []                               
+                                                                                                  
+ embedding_13 (Embedding)       (None, 200, 60)      300000      ['input_14[0][0]']               
+                                                                                                  
+ bidirectional_13 (Bidirectiona  (None, 200, 400)    417600      ['embedding_13[0][0]']           
+ l)                                                                                               
+                                                                                                  
+ attention_13 (Attention)       (None, 200, 400)     0           ['bidirectional_13[0][0]',       
+                                                                  'bidirectional_13[0][0]']       
+                                                                                                  
+ tf.nn.softmax_13 (TFOpLambda)  (None, 200, 400)     0           ['attention_13[0][0]']           
+                                                                                                  
+ tf.math.multiply_13 (TFOpLambd  (None, 200, 400)    0           ['tf.nn.softmax_13[0][0]',       
+ a)                                                               'attention_13[0][0]']           
+                                                                                                  
+ tf.math.reduce_sum_13 (TFOpLam  (None, 400)         0           ['tf.math.multiply_13[0][0]']    
+ bda)                                                                                             
+                                                                                                  
+ dropout_13 (Dropout)           (None, 400)          0           ['tf.math.reduce_sum_13[0][0]']  
+                                                                                                  
+ dense_39 (Dense)               (None, 256)          102656      ['dropout_13[0][0]']             
+                                                                                                  
+ dense_40 (Dense)               (None, 128)          32896       ['dense_39[0][0]']               
+                                                                                                  
+ dense_41 (Dense)               (None, 9)            1161        ['dense_40[0][0]']               
+                                                                                                  
+==================================================================================================
+Total params: 854,313
+Trainable params: 854,313
+Non-trainable params: 0
+__________________________________________________________________________________________________
+Epoch 1/20
+65/65 [==============================] - 58s 817ms/step - loss: 0.4930 - accuracy: 0.2475 - val_loss: 0.4563 - val_accuracy: 0.2643
+Epoch 2/20
+65/65 [==============================] - 52s 805ms/step - loss: 0.4595 - accuracy: 0.2593 - val_loss: 0.4544 - val_accuracy: 0.2643
+Epoch 3/20
+65/65 [==============================] - 52s 806ms/step - loss: 0.4535 - accuracy: 0.2594 - val_loss: 0.4507 - val_accuracy: 0.2652
+Epoch 4/20
+65/65 [==============================] - 53s 812ms/step - loss: 0.4378 - accuracy: 0.2475 - val_loss: 0.4366 - val_accuracy: 0.2744
+Epoch 5/20
+65/65 [==============================] - 53s 813ms/step - loss: 0.4082 - accuracy: 0.2839 - val_loss: 0.4230 - val_accuracy: 0.2929
+Epoch 6/20
+65/65 [==============================] - 53s 811ms/step - loss: 0.3888 - accuracy: 0.3048 - val_loss: 0.4244 - val_accuracy: 0.2811
+Epoch 7/20
+65/65 [==============================] - 52s 808ms/step - loss: 0.3737 - accuracy: 0.3171 - val_loss: 0.4294 - val_accuracy: 0.2870
+Epoch 8/20
+65/65 [==============================] - 53s 809ms/step - loss: 0.3579 - accuracy: 0.3442 - val_loss: 0.4388 - val_accuracy: 0.2938
+38/38 [==============================] - 3s 91ms/step - loss: 0.4230 - accuracy: 0.2929
+Test Loss: 0.4230
+Test Accuracy: 0.2929
+38/38 [==============================] - 4s 90ms/step
+              precision    recall  f1-score   support
+
+      comedy       0.67      0.02      0.04       175
+        cult       0.41      0.10      0.16       247
+   flashback       0.31      0.02      0.03       294
+  historical       0.00      0.00      0.00        24
+      murder       0.58      0.86      0.69       581
+     revenge       0.31      0.04      0.07       237
+    romantic       0.68      0.47      0.56       290
+       scifi       0.00      0.00      0.00        31
+    violence       0.54      0.71      0.61       420
+
+   micro avg       0.56      0.42      0.48      2299
+   macro avg       0.39      0.25      0.24      2299
+weighted avg       0.50      0.42      0.39      2299
+ samples avg       0.51      0.46      0.45      2299
+
+Weighted average_f1: 0.3882277026420273
+Vocab size: 5000, Max sequence length: 200, Embedding dim: 60, LSTM units: 200, batch_size: 128
+X_train: (8257, 200), X_test: (1188, 200)
+y_train: (8257, 9), y_test: (1188, 9)
+Model: "model_14"
+__________________________________________________________________________________________________
+ Layer (type)                   Output Shape         Param #     Connected to                     
+==================================================================================================
+ input_15 (InputLayer)          [(None, 200)]        0           []                               
+                                                                                                  
+ embedding_14 (Embedding)       (None, 200, 60)      300000      ['input_15[0][0]']               
+                                                                                                  
+ bidirectional_14 (Bidirectiona  (None, 200, 400)    417600      ['embedding_14[0][0]']           
+ l)                                                                                               
+                                                                                                  
+ attention_14 (Attention)       (None, 200, 400)     0           ['bidirectional_14[0][0]',       
+                                                                  'bidirectional_14[0][0]']       
+                                                                                                  
+ tf.nn.softmax_14 (TFOpLambda)  (None, 200, 400)     0           ['attention_14[0][0]']           
+                                                                                                  
+ tf.math.multiply_14 (TFOpLambd  (None, 200, 400)    0           ['tf.nn.softmax_14[0][0]',       
+
+ a)                                                               'attention_14[0][0]']           
+                                                                                                  
+ tf.math.reduce_sum_14 (TFOpLam  (None, 400)         0           ['tf.math.multiply_14[0][0]']    
+ bda)                                                                                             
+                                                                                                  
+ dropout_14 (Dropout)           (None, 400)          0           ['tf.math.reduce_sum_14[0][0]']  
+                                                                                                  
+ dense_42 (Dense)               (None, 256)          102656      ['dropout_14[0][0]']             
+                                                                                                  
+ dense_43 (Dense)               (None, 128)          32896       ['dense_42[0][0]']               
+                                                                                                  
+ dense_44 (Dense)               (None, 9)            1161        ['dense_43[0][0]']               
+                                                                                                  
+==================================================================================================
+Total params: 854,313
+Trainable params: 854,313
+Non-trainable params: 0
+__________________________________________________________________________________________________
+Epoch 1/20
+33/33 [==============================] - 52s 1s/step - loss: 0.5174 - accuracy: 0.2536 - val_loss: 0.4603 - val_accuracy: 0.2643
+Epoch 2/20
+33/33 [==============================] - 47s 1s/step - loss: 0.4621 - accuracy: 0.2568 - val_loss: 0.4579 - val_accuracy: 0.2643
+Epoch 3/20
+33/33 [==============================] - 48s 1s/step - loss: 0.4601 - accuracy: 0.2588 - val_loss: 0.4551 - val_accuracy: 0.2643
+Epoch 4/20
+33/33 [==============================] - 48s 1s/step - loss: 0.4563 - accuracy: 0.2543 - val_loss: 0.4501 - val_accuracy: 0.2652
+Epoch 5/20
+33/33 [==============================] - 48s 1s/step - loss: 0.4437 - accuracy: 0.2468 - val_loss: 0.4423 - val_accuracy: 0.2222
+Epoch 6/20
+33/33 [==============================] - 48s 1s/step - loss: 0.4292 - accuracy: 0.2420 - val_loss: 0.4315 - val_accuracy: 0.2753
+Epoch 7/20
+33/33 [==============================] - 48s 1s/step - loss: 0.4163 - accuracy: 0.2643 - val_loss: 0.4296 - val_accuracy: 0.2601
+Epoch 8/20
+33/33 [==============================] - 48s 1s/step - loss: 0.4020 - accuracy: 0.2873 - val_loss: 0.4261 - val_accuracy: 0.2517
+Epoch 9/20
+33/33 [==============================] - 48s 1s/step - loss: 0.3881 - accuracy: 0.3030 - val_loss: 0.4303 - val_accuracy: 0.2534
+Epoch 10/20
+33/33 [==============================] - 48s 1s/step - loss: 0.3771 - accuracy: 0.3093 - val_loss: 0.4436 - val_accuracy: 0.2593
+Epoch 11/20
+33/33 [==============================] - 48s 1s/step - loss: 0.3697 - accuracy: 0.3163 - val_loss: 0.4353 - val_accuracy: 0.2576
+38/38 [==============================] - 3s 91ms/step - loss: 0.4261 - accuracy: 0.2517
+Test Loss: 0.4261
+Test Accuracy: 0.2517
+38/38 [==============================] - 5s 93ms/step
+              precision    recall  f1-score   support
+
+      comedy       0.21      0.02      0.04       175
+        cult       0.35      0.24      0.29       247
+   flashback       0.43      0.01      0.02       294
+  historical       0.00      0.00      0.00        24
+      murder       0.56      0.89      0.68       581
+     revenge       0.27      0.08      0.13       237
+    romantic       0.56      0.53      0.55       290
+       scifi       0.00      0.00      0.00        31
+    violence       0.53      0.73      0.61       420
+
+   micro avg       0.52      0.46      0.49      2299
+   macro avg       0.32      0.28      0.26      2299
+weighted avg       0.44      0.46      0.40      2299
+ samples avg       0.52      0.49      0.46      2299
+
+Weighted average_f1: 0.4034766191012452
+Vocab size: 5000, Max sequence length: 200, Embedding dim: 60, LSTM units: 200, batch_size: 256
+X_train: (8257, 200), X_test: (1188, 200)
+y_train: (8257, 9), y_test: (1188, 9)
+Model: "model_15"
+__________________________________________________________________________________________________
+ Layer (type)                   Output Shape         Param #     Connected to                     
+==================================================================================================
+ input_16 (InputLayer)          [(None, 200)]        0           []                               
+                                                                                                  
+ embedding_15 (Embedding)       (None, 200, 100)     500000      ['input_16[0][0]']               
+                                                                                                  
+ bidirectional_15 (Bidirectiona  (None, 200, 120)    77280       ['embedding_15[0][0]']           
+ l)                                                                                               
+                                                                                                  
+ attention_15 (Attention)       (None, 200, 120)     0           ['bidirectional_15[0][0]',       
+                                                                  'bidirectional_15[0][0]']       
+                                                                                                  
+ tf.nn.softmax_15 (TFOpLambda)  (None, 200, 120)     0           ['attention_15[0][0]']           
+                                                                                                  
+ tf.math.multiply_15 (TFOpLambd  (None, 200, 120)    0           ['tf.nn.softmax_15[0][0]',       
+ a)                                                               'attention_15[0][0]']           
+                                                                                                  
+ tf.math.reduce_sum_15 (TFOpLam  (None, 120)         0           ['tf.math.multiply_15[0][0]']    
+ bda)                                                                                             
+                                                                                                  
+ dropout_15 (Dropout)           (None, 120)          0           ['tf.math.reduce_sum_15[0][0]']  
+                                                                                                  
+ dense_45 (Dense)               (None, 256)          30976       ['dropout_15[0][0]']             
+                                                                                                  
+ dense_46 (Dense)               (None, 128)          32896       ['dense_45[0][0]']               
+                                                                                                  
+ dense_47 (Dense)               (None, 9)            1161        ['dense_46[0][0]']               
+                                                                                                  
+==================================================================================================
+Total params: 642,313
+Trainable params: 642,313
+Non-trainable params: 0
+__________________________________________________________________________________________________
+Epoch 1/20
+517/517 [==============================] - 62s 107ms/step - loss: 0.4581 - accuracy: 0.2609 - val_loss: 0.4184 - val_accuracy: 0.2904
+Epoch 2/20
+517/517 [==============================] - 53s 103ms/step - loss: 0.4066 - accuracy: 0.3005 - val_loss: 0.4048 - val_accuracy: 0.3123
+Epoch 3/20
+517/517 [==============================] - 53s 102ms/step - loss: 0.3731 - accuracy: 0.3463 - val_loss: 0.4092 - val_accuracy: 0.3468
+Epoch 4/20
+517/517 [==============================] - 53s 102ms/step - loss: 0.3449 - accuracy: 0.3937 - val_loss: 0.4152 - val_accuracy: 0.3443
+Epoch 5/20
+517/517 [==============================] - 53s 103ms/step - loss: 0.3209 - accuracy: 0.4301 - val_loss: 0.4435 - val_accuracy: 0.3359
+
+38/38 [==============================] - 2s 45ms/step - loss: 0.4048 - accuracy: 0.3123
+Test Loss: 0.4048
+Test Accuracy: 0.3123
+38/38 [==============================] - 3s 42ms/step
+              precision    recall  f1-score   support
+
+      comedy       0.56      0.05      0.09       175
+        cult       0.39      0.11      0.18       247
+   flashback       0.47      0.14      0.22       294
+  historical       0.00      0.00      0.00        24
+      murder       0.67      0.78      0.72       581
+     revenge       0.36      0.09      0.15       237
+    romantic       0.60      0.55      0.57       290
+       scifi       0.00      0.00      0.00        31
+    violence       0.57      0.68      0.62       420
+
+   micro avg       0.60      0.44      0.50      2299
+   macro avg       0.40      0.27      0.28      2299
+weighted avg       0.53      0.44      0.44      2299
+ samples avg       0.53      0.46      0.46      2299
+
+Weighted average_f1: 0.43772541426301387
+Vocab size: 5000, Max sequence length: 200, Embedding dim: 100, LSTM units: 60, batch_size: 16
+X_train: (8257, 200), X_test: (1188, 200)
+y_train: (8257, 9), y_test: (1188, 9)
+Model: "model_16"
+__________________________________________________________________________________________________
+ Layer (type)                   Output Shape         Param #     Connected to                     
+==================================================================================================
+ input_17 (InputLayer)          [(None, 200)]        0           []                               
+                                                                                                  
+ embedding_16 (Embedding)       (None, 200, 100)     500000      ['input_17[0][0]']               
+                                                                                                  
+ bidirectional_16 (Bidirectiona  (None, 200, 120)    77280       ['embedding_16[0][0]']           
+ l)                                                                                               
+                                                                                                  
+ attention_16 (Attention)       (None, 200, 120)     0           ['bidirectional_16[0][0]',       
+                                                                  'bidirectional_16[0][0]']       
+                                                                                                  
+ tf.nn.softmax_16 (TFOpLambda)  (None, 200, 120)     0           ['attention_16[0][0]']           
+                                                                                                  
+ tf.math.multiply_16 (TFOpLambd  (None, 200, 120)    0           ['tf.nn.softmax_16[0][0]',       
+ a)                                                               'attention_16[0][0]']           
+                                                                                                  
+ tf.math.reduce_sum_16 (TFOpLam  (None, 120)         0           ['tf.math.multiply_16[0][0]']    
+ bda)                                                                                             
+                                                                                                  
+ dropout_16 (Dropout)           (None, 120)          0           ['tf.math.reduce_sum_16[0][0]']  
+                                                                                                  
+ dense_48 (Dense)               (None, 256)          30976       ['dropout_16[0][0]']             
+                                                                                                  
+ dense_49 (Dense)               (None, 128)          32896       ['dense_48[0][0]']               
+                                                                                                  
+ dense_50 (Dense)               (None, 9)            1161        ['dense_49[0][0]']               
+                                                                                                  
+==================================================================================================
+Total params: 642,313
+Trainable params: 642,313
+Non-trainable params: 0
+__________________________________________________________________________________________________
+Epoch 1/20
+259/259 [==============================] - 38s 131ms/step - loss: 0.4713 - accuracy: 0.2440 - val_loss: 0.4567 - val_accuracy: 0.2626
+Epoch 2/20
+259/259 [==============================] - 32s 122ms/step - loss: 0.4252 - accuracy: 0.2810 - val_loss: 0.4200 - val_accuracy: 0.3030
+Epoch 3/20
+259/259 [==============================] - 32s 123ms/step - loss: 0.3888 - accuracy: 0.3192 - val_loss: 0.4123 - val_accuracy: 0.2988
+Epoch 4/20
+259/259 [==============================] - 32s 122ms/step - loss: 0.3613 - accuracy: 0.3611 - val_loss: 0.4148 - val_accuracy: 0.3258
+Epoch 5/20
+259/259 [==============================] - 31s 119ms/step - loss: 0.3421 - accuracy: 0.3906 - val_loss: 0.4341 - val_accuracy: 0.3140
+Epoch 6/20
+259/259 [==============================] - 31s 119ms/step - loss: 0.3251 - accuracy: 0.4120 - val_loss: 0.4465 - val_accuracy: 0.3140
+38/38 [==============================] - 2s 39ms/step - loss: 0.4123 - accuracy: 0.2988
+Test Loss: 0.4123
+Test Accuracy: 0.2988
+38/38 [==============================] - 3s 40ms/step
+              precision    recall  f1-score   support
+
+      comedy       0.31      0.07      0.11       175
+        cult       0.35      0.32      0.33       247
+   flashback       0.43      0.11      0.18       294
+  historical       0.00      0.00      0.00        24
+      murder       0.65      0.84      0.73       581
+     revenge       0.36      0.19      0.25       237
+    romantic       0.71      0.41      0.52       290
+       scifi       0.00      0.00      0.00        31
+    violence       0.53      0.76      0.62       420
+
+   micro avg       0.55      0.48      0.51      2299
+   macro avg       0.37      0.30      0.31      2299
+weighted avg       0.50      0.48      0.46      2299
+ samples avg       0.50      0.50      0.46      2299
+
+Weighted average_f1: 0.45702310929945866
+Vocab size: 5000, Max sequence length: 200, Embedding dim: 100, LSTM units: 60, batch_size: 32
+X_train: (8257, 200), X_test: (1188, 200)
+y_train: (8257, 9), y_test: (1188, 9)
+Model: "model_17"
+__________________________________________________________________________________________________
+ Layer (type)                   Output Shape         Param #     Connected to                     
+==================================================================================================
+ input_18 (InputLayer)          [(None, 200)]        0           []                               
+                                                                                                  
+ embedding_17 (Embedding)       (None, 200, 100)     500000      ['input_18[0][0]']               
+                                                                                                  
+ bidirectional_17 (Bidirectiona  (None, 200, 120)    77280       ['embedding_17[0][0]']           
+ l)                                                                                               
+                                                                                                  
+ attention_17 (Attention)       (None, 200, 120)     0           ['bidirectional_17[0][0]',       
+                                                                  'bidirectional_17[0][0]']       
+                                                                                                  
+ tf.nn.softmax_17 (TFOpLambda)  (None, 200, 120)     0           ['attention_17[0][0]']           
+                                                                                                  
+ tf.math.multiply_17 (TFOpLambd  (None, 200, 120)    0           ['tf.nn.softmax_17[0][0]',       
+ a)                                                               'attention_17[0][0]']           
+                                                                                                  
+ tf.math.reduce_sum_17 (TFOpLam  (None, 120)         0           ['tf.math.multiply_17[0][0]']    
+
+ bda)                                                                                             
+                                                                                                  
+ dropout_17 (Dropout)           (None, 120)          0           ['tf.math.reduce_sum_17[0][0]']  
+                                                                                                  
+ dense_51 (Dense)               (None, 256)          30976       ['dropout_17[0][0]']             
+                                                                                                  
+ dense_52 (Dense)               (None, 128)          32896       ['dense_51[0][0]']               
+                                                                                                  
+ dense_53 (Dense)               (None, 9)            1161        ['dense_52[0][0]']               
+                                                                                                  
+==================================================================================================
+Total params: 642,313
+Trainable params: 642,313
+Non-trainable params: 0
+__________________________________________________________________________________________________
+Epoch 1/20
+130/130 [==============================] - 27s 172ms/step - loss: 0.4817 - accuracy: 0.2547 - val_loss: 0.4541 - val_accuracy: 0.2643
+Epoch 2/20
+130/130 [==============================] - 21s 163ms/step - loss: 0.4537 - accuracy: 0.2592 - val_loss: 0.4517 - val_accuracy: 0.2576
+Epoch 3/20
+130/130 [==============================] - 21s 160ms/step - loss: 0.4197 - accuracy: 0.2811 - val_loss: 0.4175 - val_accuracy: 0.2938
+Epoch 4/20
+130/130 [==============================] - 21s 165ms/step - loss: 0.3922 - accuracy: 0.3036 - val_loss: 0.4345 - val_accuracy: 0.2466
+Epoch 5/20
+130/130 [==============================] - 21s 164ms/step - loss: 0.3747 - accuracy: 0.3242 - val_loss: 0.4334 - val_accuracy: 0.2912
+Epoch 6/20
+130/130 [==============================] - 21s 164ms/step - loss: 0.3533 - accuracy: 0.3643 - val_loss: 0.4392 - val_accuracy: 0.2887
+38/38 [==============================] - 1s 38ms/step - loss: 0.4175 - accuracy: 0.2938
+Test Loss: 0.4175
+Test Accuracy: 0.2938
+38/38 [==============================] - 3s 44ms/step
+              precision    recall  f1-score   support
+
+      comedy       0.40      0.02      0.04       175
+        cult       0.39      0.11      0.17       247
+   flashback       0.33      0.05      0.09       294
+  historical       0.00      0.00      0.00        24
+      murder       0.58      0.87      0.69       581
+     revenge       0.28      0.13      0.18       237
+    romantic       0.58      0.62      0.60       290
+       scifi       0.00      0.00      0.00        31
+    violence       0.57      0.70      0.63       420
+
+   micro avg       0.55      0.46      0.50      2299
+   macro avg       0.35      0.28      0.27      2299
+weighted avg       0.47      0.46      0.42      2299
+ samples avg       0.56      0.49      0.48      2299
+
+Weighted average_f1: 0.4168276991763907
+Vocab size: 5000, Max sequence length: 200, Embedding dim: 100, LSTM units: 60, batch_size: 64
+X_train: (8257, 200), X_test: (1188, 200)
+y_train: (8257, 9), y_test: (1188, 9)
+Model: "model_18"
+__________________________________________________________________________________________________
+ Layer (type)                   Output Shape         Param #     Connected to                     
+==================================================================================================
+ input_19 (InputLayer)          [(None, 200)]        0           []                               
+                                                                                                  
+ embedding_18 (Embedding)       (None, 200, 100)     500000      ['input_19[0][0]']               
+                                                                                                  
+ bidirectional_18 (Bidirectiona  (None, 200, 120)    77280       ['embedding_18[0][0]']           
+ l)                                                                                               
+                                                                                                  
+ attention_18 (Attention)       (None, 200, 120)     0           ['bidirectional_18[0][0]',       
+                                                                  'bidirectional_18[0][0]']       
+                                                                                                  
+ tf.nn.softmax_18 (TFOpLambda)  (None, 200, 120)     0           ['attention_18[0][0]']           
+                                                                                                  
+ tf.math.multiply_18 (TFOpLambd  (None, 200, 120)    0           ['tf.nn.softmax_18[0][0]',       
+ a)                                                               'attention_18[0][0]']           
+                                                                                                  
+ tf.math.reduce_sum_18 (TFOpLam  (None, 120)         0           ['tf.math.multiply_18[0][0]']    
+ bda)                                                                                             
+                                                                                                  
+ dropout_18 (Dropout)           (None, 120)          0           ['tf.math.reduce_sum_18[0][0]']  
+                                                                                                  
+ dense_54 (Dense)               (None, 256)          30976       ['dropout_18[0][0]']             
+                                                                                                  
+ dense_55 (Dense)               (None, 128)          32896       ['dense_54[0][0]']               
+                                                                                                  
+ dense_56 (Dense)               (None, 9)            1161        ['dense_55[0][0]']               
+                                                                                                  
+==================================================================================================
+Total params: 642,313
+Trainable params: 642,313
+Non-trainable params: 0
+__________________________________________________________________________________________________
+Epoch 1/20
+65/65 [==============================] - 22s 270ms/step - loss: 0.5058 - accuracy: 0.2313 - val_loss: 0.4569 - val_accuracy: 0.2643
+Epoch 2/20
+65/65 [==============================] - 16s 251ms/step - loss: 0.4576 - accuracy: 0.2594 - val_loss: 0.4519 - val_accuracy: 0.2643
+Epoch 3/20
+65/65 [==============================] - 16s 249ms/step - loss: 0.4416 - accuracy: 0.2563 - val_loss: 0.4224 - val_accuracy: 0.2912
+Epoch 4/20
+65/65 [==============================] - 16s 245ms/step - loss: 0.4066 - accuracy: 0.2933 - val_loss: 0.4177 - val_accuracy: 0.2946
+Epoch 5/20
+65/65 [==============================] - 16s 243ms/step - loss: 0.3879 - accuracy: 0.3033 - val_loss: 0.4226 - val_accuracy: 0.2778
+Epoch 6/20
+65/65 [==============================] - 16s 242ms/step - loss: 0.3740 - accuracy: 0.3207 - val_loss: 0.4306 - val_accuracy: 0.2727
+Epoch 7/20
+31/65 [=============>................] - ETA: 7s - loss: 0.3538 - accuracy: 0.3435
