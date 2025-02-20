@@ -1,4 +1,3 @@
-from enum import unique
 import os
 
 BATCH_FOLDER = '/home/aap9002/Stereo-Road-Curvature-Dashcam/unlabelled/sub'

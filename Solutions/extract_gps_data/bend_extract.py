@@ -3,7 +3,7 @@
 # gps_bend_finding_with_gaussian_smoothing_and_DBSCAN_clustering_and_circle_fitting
 
 # %%
-ids = [42]
+ids = [43]
 min_string_length = 9
 DATASET_PATH = "/home/aap9002/Stereo-Road-Curvature-Dashcam"
 min_speed_filter = 5
@@ -407,9 +407,6 @@ plt.ylabel('y')
 plt.title(f'Valid GPS positions > {min_speed_filter} MPH - Including GPS Outliers')
 
 # %%
-
-
-# %%
 plt.close('all')
 
 x = [pos['x'] for pos in positions]
@@ -605,21 +602,29 @@ def get_smoothed_sequence_angles(x_pos:list[float], y_pos:list[float], meters:in
 
         # print(low_index, i, high_index)
 
-        # calculate the angle
-        before_dx = np.sum(diff_x[low_index:i])
-        before_dy = np.sum(diff_y[low_index:i])
-        after_dx = np.sum(diff_x[i:high_index])
-        after_dy = np.sum(diff_y[i:high_index])
+        # Before vector (from low_index to i)
+        before_vector = np.array([
+            np.sum(diff_x[low_index:i]), 
+            np.sum(diff_y[low_index:i])
+        ])
         
-        # Skip zero vectors to avoid NaN
-        if (before_dx == 0 and before_dy == 0) or (after_dx == 0 and after_dy == 0):
+
+        # After vector (from i to high_index)
+        after_vector = np.array([
+            np.sum(diff_x[i:high_index]), 
+            np.sum(diff_y[i:high_index])
+        ])
+        
+        # Check zero vectors
+        if np.linalg.norm(before_vector) == 0 or np.linalg.norm(after_vector) == 0:
             angles.append(0.0)
             continue
         
-        # Compute angle
-        dot = before_dx * after_dx + before_dy * after_dy
-        cross = before_dx * after_dy - before_dy * after_dx
+        # Compute angle using vector operations
+        dot = np.dot(before_vector, after_vector)
+        cross = np.cross(before_vector, after_vector)  # Cross product magnitude (z-component)
         angle = np.arctan2(cross, dot)
+        
         angles.append(angle)
 
     angles_rad = np.array(angles)
@@ -640,7 +645,7 @@ def get_smoothed_sequence_angles(x_pos:list[float], y_pos:list[float], meters:in
 # ### Config parameters for bend ROI findings
 
 # %%
-lower_threshold = 10  # degrees
+lower_threshold = 5  # degrees
 DB_SCAN_EPS = 10
 DB_SCAN_MIN_SAMPLES = 3
 
@@ -740,7 +745,9 @@ if len(cluster_centers) > 0:
     )
 else:
     plt.legend(["GPS Positions", "Potential Bend"])
-    
+
+# set size
+plt.gcf().set_size_inches(10, 10)
 plt.title(f"All potential bends in GPS Path > {min_speed_filter} MPH")
 plt.ylabel("y")
 plt.xlabel("x")
@@ -946,7 +953,10 @@ def plot_bend(bend_name:str, cluster_center:list[float], points:list[dict], focu
 # find first curve of a series of points
 
 # %%
-def find_first_bend_from_series(points:list[dict], min_degree_threshold:float = 6):
+from enum import auto
+
+
+def find_first_bend_from_series(points:list[dict], min_degree_threshold:float = 2):
     """Find the initial bend from the series of points
 
     Args:
@@ -963,9 +973,19 @@ def find_first_bend_from_series(points:list[dict], min_degree_threshold:float = 
     # x = np.convolve(x, np.ones(3) /3, mode='valid')
     # y = np.convolve(y, np.ones(3) / 3, mode='valid')
 
-    angles = get_smoothed_sequence_angles(x, y, meters=10)
+    angles = get_smoothed_sequence_angles(x, y, meters=5)
 
     print(angles[:5])
+
+    # set threshold to largest 10% of angles
+    abs_angles = np.abs(angles)
+    abs_angles = np.sort(abs_angles)
+    auto_degree_threshold = abs_angles[int(len(abs_angles) * 0.85)]
+
+    print("automatic threshold:", auto_degree_threshold)
+
+    min_degree_threshold = max(min_degree_threshold, auto_degree_threshold)
+    
 
     first_bend_found = False
     first_bend_sign = None
@@ -973,7 +993,7 @@ def find_first_bend_from_series(points:list[dict], min_degree_threshold:float = 
     tolerance = 3
 
     first_bend_positions = []
-    for i in range(5, len(angles)):
+    for i in range(10, len(angles)):
         sign = np.sign(angles[i])
         if abs(angles[i]) > min_degree_threshold:
             if not first_bend_found:
@@ -1006,10 +1026,11 @@ def find_first_bend_from_series(points:list[dict], min_degree_threshold:float = 
 bends_for_curve_fitting = []
 
 for i, bend in enumerate(cluster_centers):
-    records = get_points_near_a_cluster_estimated_center(bend, positions, distance_threshold=50)
-    print(f"Bend {i}: {len(records)} points near the center - Avg Speed: {np.mean([float(pos['speed']) for pos in records])}")
+    records = get_points_near_a_cluster_estimated_center(bend, positions, distance_threshold=100)
+    avg_speed = np.mean([float(pos['speed']) for pos in records])
+    print(f"Bend {i}: {len(records)} points near the center - Avg Speed: {avg_speed} MPH")
 
-    focused_points, first_bend_sign = find_first_bend_from_series(records, min_degree_threshold=7)
+    focused_points, first_bend_sign = find_first_bend_from_series(records, min_degree_threshold=5)
 
     if focused_points is not None:
         start_of_focused_points = focused_points[0]
@@ -1023,7 +1044,8 @@ for i, bend in enumerate(cluster_centers):
             "bend": bend,
             "focused_points": focused_points,
             "Estimated_start_frame": start_of_focused_points_frame,
-            "first_bend_sign": "Left" if first_bend_sign < 0 else "Right"
+            "first_bend_sign": "Left" if first_bend_sign < 0 else "Right",
+            "avg_speed": avg_speed
         })
 
 # %% [markdown]
@@ -1216,11 +1238,11 @@ else:
 # # Output Bend CSV
 
 # %%
-columns = ["frame", "bend_direction"]
+columns = ["frame", "bend_direction", "avg_speed"]
 data = []
 
 for bend in bends_for_curve_fitting:
-    data.append([bend['Estimated_start_frame'], bend['first_bend_sign']])
+    data.append([bend['Estimated_start_frame'], bend['first_bend_sign'],bend['avg_speed']])
 
 import pandas as pd
 df = pd.DataFrame(data, columns=columns)
