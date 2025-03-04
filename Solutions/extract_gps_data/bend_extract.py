@@ -3,17 +3,27 @@
 # gps_bend_finding_with_gaussian_smoothing_and_DBSCAN_clustering_and_circle_fitting
 
 # %%
-ids = [43]
+ids = [12]
 min_string_length = 9
 DATASET_PATH = "/home/aap9002/Stereo-Road-Curvature-Dashcam"
 min_speed_filter = 5
+
+# %%
+import re
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import cv2
+import os
+import math
+from sklearn.cluster import DBSCAN
+from pyproj import Transformer
+import argparse
 
 # %% [markdown]
 # ### Pipeline support with passing forced parameters
 
 # %%
-import argparse
-
 parser = argparse.ArgumentParser(
     description="Process input and output paths for video processing."
 )
@@ -52,15 +62,6 @@ else:
 
 # %% [markdown]
 # ### Helper
-
-# %%
-import re
-import numpy as np
-import matplotlib.pyplot as plt
-import cv2
-import os
-from sklearn.cluster import DBSCAN
-from pyproj import Transformer
 
 # %%
 def count_frames(video_path:str):
@@ -302,6 +303,12 @@ def parse_gprmc(input_sequence:str):
     # Extract latitude and longitude with direction
     time = parts_GPRMC[1]
     valid = parts_GPRMC[2]  # A - data valid, V - data invalid
+    if valid == 'V':
+        return {
+            "time": time,
+            "valid": False
+        }
+
     latitude = parts_GPRMC[3]
     lat_direction = parts_GPRMC[4]
     longitude = parts_GPRMC[5]
@@ -312,8 +319,7 @@ def parse_gprmc(input_sequence:str):
     # Convert latitude and longitude to decimal
     numeric_lat, numeric_lon = DMS_to_decimal(longitude, lon_direction, latitude, lat_direction)
 
-    if valid == 'A': # check if the data record is valid
-        speed = knots_to_mph(float(speed))  # Convert speed to mph
+    speed = knots_to_mph(float(speed))  # Convert speed to mph
         
     # Return the extracted values as a dictionary
     return {
@@ -335,8 +341,18 @@ for i in range(0, len(data), 2):
 
 # status of the records
 print(f"Found {len(positions)} positions")
-print("valid positions:", len([p for p in positions if p['valid']]))
-print("invalid positions:", len([p for p in positions if not p['valid']]))
+num_total_valid = len([p for p in positions if p['valid']])
+num_total_invalid = len([p for p in positions if not p['valid']])
+print("valid positions:", num_total_valid)
+print("invalid positions:", num_total_invalid)
+
+if num_total_valid == 0:
+    raise ValueError("No valid positions found")
+
+if num_total_invalid > 0:
+    print("Some positions are invalid")
+    if num_total_invalid / len(positions) > 0.1:
+        raise ValueError("More than 10% of the positions are invalid")
 
 # remove records with the same values
 positions = [dict(t) for t in {tuple(d.items()) for d in positions}]
@@ -501,31 +517,47 @@ print(f"{len(positions)} positions after filtering")
 positions[:2]
 
 # %% [markdown]
-# # Find closest position entry to point of interest
+# # Set accumulated distance in positions
 
 # %%
-def get_points_near_a_cluster_estimated_center(
-        cluster_center:list[float],
-        positions:list[dict],
-        distance_threshold:float = 100):
-    """Get the points near a cluster estimated center
+def get_accumulated_distance(x_pos: list[float], y_pos: list[float]) -> list[float]:
+    """Get the accumulated distance from x and y positions
 
     Args:
-        cluster_center (list[float]): list of estimated centers
-        positions (list[dict]): list of gps positions
-        distance_threshold (float, optional): The distance threshold. Defaults to 100.
+        x_pos (list[float]): x values
+        y_pos (list[float]): y values
 
     Returns:
-        list[dict]: The positions within the distance threshold
+        list[float]: list of accumulated distances
     """
-    points = []
-    for position in positions:
-        x = float(position['x'])
-        y = float(position['y'])
-        distance = np.sqrt((x - cluster_center[0])**2 + (y - cluster_center[1])**2)
-        if distance < distance_threshold:
-            points.append(position)
-    return points
+
+    distance = 0.0
+    distances = [0.0]
+    for i in range(1, len(x_pos)):
+        dx = x_pos[i] - x_pos[i-1]
+        dy = y_pos[i] - y_pos[i-1]
+        distance += np.hypot(dx, dy)
+        distances.append(distance)
+    return distances
+
+def set_accumulated_distance(positions: list[dict]) -> list[dict]:
+    """Set the accumulated distance for the positions
+
+    Args:
+        positions (list[dict]): The list of positions
+
+    Returns:
+        list[dict]: The list of positions with accumulated distance
+    """
+    x_pos = [float(pos['x']) for pos in positions]
+    y_pos = [float(pos['y']) for pos in positions]
+    distances = get_accumulated_distance(x_pos, y_pos)
+    for i in range(len(positions)):
+        positions[i]['distance'] = distances[i]
+    return positions
+
+positions = set_accumulated_distance(positions)
+positions[:2]
 
 # %% [markdown]
 # # Find bends
@@ -549,26 +581,6 @@ def apply_median_filter(records:list[float], size:int = 5):
     return temp
 
 # %%
-def get_accumulated_distance(x_pos: list[float], y_pos: list[float]) -> list[float]:
-    """Get the accumulated distance from x and y positions
-
-    Args:
-        x_pos (list[float]): x values
-        y_pos (list[float]): y values
-
-    Returns:
-        list[float]: list of accumulated distances
-    """
-
-    distance = 0.0
-    distances = [0.0]
-    for i in range(1, len(x_pos)):
-        dx = x_pos[i] - x_pos[i-1]
-        dy = y_pos[i] - y_pos[i-1]
-        distance += np.hypot(dx, dy)
-        distances.append(distance)
-    return distances
-
 def get_smoothed_sequence_angles(x_pos:list[float], y_pos:list[float], meters:int = 5) -> list[float]:
     """Get the smoothed sequence angles from x and y positions sequence
 
@@ -580,8 +592,8 @@ def get_smoothed_sequence_angles(x_pos:list[float], y_pos:list[float], meters:in
         list[float]: The smoothed sequence angles
     """
 
-    x_pos = apply_median_filter(x_pos, 3)
-    y_pos = apply_median_filter(y_pos, 3)
+    x_pos = apply_median_filter(x_pos, 5)
+    y_pos = apply_median_filter(y_pos, 5)
 
     diff_x = np.diff(x_pos)
     diff_y = np.diff(y_pos)
@@ -849,7 +861,6 @@ print(f"Estimated frame numbers: {frame_numbers}")
 # ### Output images of estimated frames
 
 # %%
-
 frame_numbers = sorted(frame_numbers)
 
 def print_frames(frame_numbers:list[int], file_path:str = file_path):
@@ -870,16 +881,24 @@ def print_frames(frame_numbers:list[int], file_path:str = file_path):
     cap.release()
     
     if frames:
-        fig, axes = plt.subplots(1, len(frames), figsize=(20, 10))
-        if len(frames) == 1:
-            axes.imshow(cv2.cvtColor(frames[0], cv2.COLOR_BGR2RGB))
-            axes.axis('off')
-            axes.set_title(f"Frame {frame_numbers[0]}")
+        n_frames = len(frames)
+        n_cols = min(3, n_frames)
+        n_rows = math.ceil(n_frames / n_cols)
+        
+        fig, axes = plt.subplots(n_rows, n_cols, figsize=(15, 15))
+        if n_rows == 1 and n_cols == 1:
+            axes = [axes]
         else:
-            for i, frame in enumerate(frames):
-                axes[i].imshow(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
-                axes[i].axis('off')
-                axes[i].set_title(f"Frame {frame_numbers[i]}")
+            axes = axes.flatten()
+        for i, frame in enumerate(frames):
+            axes[i].imshow(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+            axes[i].axis('off')
+            axes[i].set_title(f"Frame {frame_numbers[i]}")
+
+        for i in range(n_frames, len(axes)): # clear the rest of the axes
+            axes[i].axis('off')          
+
+        plt.tight_layout()
     else:
         print("No frames to display")
 
@@ -950,12 +969,62 @@ def plot_bend(bend_name:str, cluster_center:list[float], points:list[dict], focu
         plt.close('all')
 
 # %% [markdown]
-# find first curve of a series of points
+# ## Find closest position entry to point of interest
 
 # %%
-from enum import auto
+def closest_point_to_x_y(x:float, y:float, positions:list[dict]):
+    """Get the closest point to x, y
 
+    Args:
+        x (float): The x coordinate
+        y (float): The y coordinate
+        positions (list[dict]): The list of positions
 
+    Returns:
+        dict: The closest point
+    """
+    min_distance = float('inf')
+    closest_point = None
+    for position in positions:
+        distance = np.sqrt((x - position['x'])**2 + (y - position['y'])**2)
+        if distance < min_distance:
+            min_distance = distance
+            closest_point = position
+    return closest_point
+
+def get_points_near_a_cluster_estimated_center(
+        cluster_center:list[float],
+        positions:list[dict],
+        distance_threshold:float = 100):
+    """Get the points near a cluster estimated center
+
+    Args:
+        cluster_center (list[float]): list of estimated centers
+        positions (list[dict]): list of gps positions
+        distance_threshold (float, optional): The distance threshold. Defaults to 100.
+
+    Returns:
+        list[dict]: The positions within the distance threshold
+    """
+    closest_point = closest_point_to_x_y(cluster_center[0], cluster_center[1], positions)
+    closest_point_accumulated_distance = closest_point['distance']
+    points = [closest_point]
+
+    print(f"Closest point: {closest_point}")
+    print(f"Closest point accumulated distance: {closest_point_accumulated_distance}")
+
+    for position in positions:
+        if abs(position['distance'] - closest_point_accumulated_distance) < distance_threshold:
+            points.append(position)
+
+    points = sorted(points, key=lambda x: time_stamp_to_seconds(x['time']))
+
+    return points
+
+# %% [markdown]
+# ## find first curve of a series of points
+
+# %%
 def find_first_bend_from_series(points:list[dict], min_degree_threshold:float = 2):
     """Find the initial bend from the series of points
 
@@ -977,15 +1046,21 @@ def find_first_bend_from_series(points:list[dict], min_degree_threshold:float = 
 
     print(angles[:5])
 
-    # set threshold to largest 10% of angles
+    # set threshold to largest 20% of angles
     abs_angles = np.abs(angles)
     abs_angles = np.sort(abs_angles)
-    auto_degree_threshold = abs_angles[int(len(abs_angles) * 0.85)]
+    sum_angles = np.sum(abs_angles)
+    auto_degree_threshold = 0
+    accumulated_sum = 0
+    for i in range(len(abs_angles)):
+        accumulated_sum += abs_angles[i]
+        if accumulated_sum > sum_angles * 0.8:
+            auto_degree_threshold = abs_angles[i]
+            break
 
     print("automatic threshold:", auto_degree_threshold)
 
     min_degree_threshold = max(min_degree_threshold, auto_degree_threshold)
-    
 
     first_bend_found = False
     first_bend_sign = None
@@ -1040,12 +1115,16 @@ for i, bend in enumerate(cluster_centers):
     plot_bend(f"Bend {i}", bend, records, focused_points)
 
     if len(records) > 0 and focused_points is not None:
+        start_of_focused_points = focused_points[0]
+        print(f"start_of_focused_points_position_accumulated_distance: {start_of_focused_points['distance']}")
+
         bends_for_curve_fitting.append({
             "bend": bend,
             "focused_points": focused_points,
             "Estimated_start_frame": start_of_focused_points_frame,
             "first_bend_sign": "Left" if first_bend_sign < 0 else "Right",
-            "avg_speed": avg_speed
+            "avg_speed": avg_speed,
+            "start_of_focused_points_position_accumulated_distance": start_of_focused_points['distance']
         })
 
 # %% [markdown]
@@ -1221,13 +1300,53 @@ for i, bend in enumerate(cluster_centers):
 
 
 # %% [markdown]
-# # Visualise
+# # Organise and Filter CSV
+
+# %%
+columns = ["frame", "bend_direction", "avg_speed", "start_of_focused_points_position_accumulated_distance"]
+data = []
+
+for bend in bends_for_curve_fitting:
+    data.append([bend['Estimated_start_frame'], bend['first_bend_sign'],bend['avg_speed'], bend['start_of_focused_points_position_accumulated_distance']])
+
+df = pd.DataFrame(data, columns=columns)
+df
+
+# %%
+def select_first_of_nearby_frames(df, min_accumulated_dist = 20):
+    """Select the first frame of nearby frames
+
+    Args:
+        df (pd.DataFrame): The dataframe
+        min_accumulated_dist (int, optional): The minimum distance. Defaults to 100.
+
+    Returns:
+        pd.DataFrame: The selected dataframe
+    """
+    selected = []
+    for i in range(len(df)):
+        if i == 0:
+            selected.append(df.iloc[i])
+            continue
+
+        if df.iloc[i]['start_of_focused_points_position_accumulated_distance'] - selected[-1]['start_of_focused_points_position_accumulated_distance'] > min_accumulated_dist:
+            selected.append(df.iloc[i])
+
+    return pd.DataFrame(selected)
+
+# %%
+df = select_first_of_nearby_frames(df)
+df
+
+# %% [markdown]
+# ### Visualise
 
 # %%
 if bends_for_curve_fitting:
-	frames = print_frames([bend['Estimated_start_frame'] for bend in bends_for_curve_fitting])
+	frames = print_frames(df['frame'].tolist())
 	for i, frame in enumerate(frames):
-		output_file = os.path.join(output_folder, f"bend_{i}_frame_{bends_for_curve_fitting[i]['Estimated_start_frame']}_{bends_for_curve_fitting[i]['first_bend_sign']}.jpg")
+		df_row = df.iloc[i]
+		output_file = os.path.join(output_folder, f"bend_{i}_frame_{df_row['frame']}_{df_row['bend_direction']}.jpg")
 		cv2.imwrite(output_file, frame)
 else:
 	print("No bends found for curve fitting.")
@@ -1235,23 +1354,188 @@ else:
 
 
 # %% [markdown]
-# # Output Bend CSV
+# ## Get frame number of x meters before start of bend
 
 # %%
-columns = ["frame", "bend_direction", "avg_speed"]
-data = []
+accumulated_position_distance = [pos['distance'] for pos in positions]
 
-for bend in bends_for_curve_fitting:
-    data.append([bend['Estimated_start_frame'], bend['first_bend_sign'],bend['avg_speed']])
+# %%
+def find_frame_nearest_point_to_given_accumulated_distance(positions:list[float], distance:float):
+    """Find the nearest point to a given accumulated distance
 
-import pandas as pd
-df = pd.DataFrame(data, columns=columns)
-df
+    Args:
+        positions (list[float]): The list of positions
+        distance (float): target distance
+    """
+
+    min_distance = float('inf')
+    nearest_point = None
+
+    for pos in positions:
+        if abs(pos['distance'] - distance) < min_distance:
+            min_distance = abs(pos['distance'] - distance)
+            nearest_point = pos
+
+    time = nearest_point['time']
+    frame = time_stamp_to_frame_number(time)
+
+    return frame
+
+
+columns = [
+    "frame",
+    "bend_direction",
+    "avg_speed",
+    "start_of_focused_points_position_accumulated_distance",
+    "frame_20_meters_before",
+    "frame_30_meters_before",
+    "frame_40_meters_before",
+    "frame_50_meters_before",
+    "frame_75_meters_before",
+    "frame_100_meters_before",
+    "frame_150_meters_before"
+    ]
+
+
+data_val = []
+
+for i in range(len(df)):
+    df_row = df.iloc[i]
+    bend_accumulated_distance = df_row['start_of_focused_points_position_accumulated_distance']
+
+    frame_20_meters_before = find_frame_nearest_point_to_given_accumulated_distance(positions, bend_accumulated_distance - 20)
+    frame_30_meters_before = find_frame_nearest_point_to_given_accumulated_distance(positions, bend_accumulated_distance - 30)
+    frame_40_meters_before = find_frame_nearest_point_to_given_accumulated_distance(positions, bend_accumulated_distance - 40)
+    frame_50_meters_before = find_frame_nearest_point_to_given_accumulated_distance(positions, bend_accumulated_distance - 50)
+    frame_75_meters_before = find_frame_nearest_point_to_given_accumulated_distance(positions, bend_accumulated_distance - 75)
+    frame_100_meters_before = find_frame_nearest_point_to_given_accumulated_distance(positions, bend_accumulated_distance - 100)
+    frame_150_meters_before = find_frame_nearest_point_to_given_accumulated_distance(positions, bend_accumulated_distance - 150)
+
+    data_val.append([
+        df_row['frame'],
+        df_row['bend_direction'],
+        df_row['avg_speed'],
+        df_row['start_of_focused_points_position_accumulated_distance'],
+        frame_20_meters_before,
+        frame_30_meters_before,
+        frame_40_meters_before,
+        frame_50_meters_before,
+        frame_75_meters_before,
+        frame_100_meters_before,
+        frame_150_meters_before
+    ])
+
+
+df_with_accumulated_distance = pd.DataFrame(data_val, columns=columns)
+df_with_accumulated_distance
 
 # %%
 csv_save_path = os.path.join(output_folder, "bend_directions.csv")
-df.to_csv(csv_save_path, index=False)
+df_with_accumulated_distance.to_csv(csv_save_path, index=False)
 print(f"Saved bend directions to {csv_save_path}")
+
+# %%
+def resize_frame_to_224(frame):
+    """Resize the frame to 224x224
+
+    Args:
+        frame (np.ndarray): The frame
+
+    Returns:
+        np.ndarray: The resized frame
+    """
+    # crop 20% off left and right
+    frame = frame[:, int(frame.shape[1] * 0.2):int(frame.shape[1] * 0.8)]
+
+    # crop 25% off top and bottom 
+    frame = frame[int(frame.shape[0] * 0.25):int(frame.shape[0] * 0.75), :]
+
+    return cv2.resize(frame, (224, 224))
+
+# %%
+MIN_FRAME = 0
+MAX_FRAME = total_frames
+video_frame_length = 60
+
+def save_avi_from_to(path, from_frame, to_frame):
+    """Save a video from a given frame to another
+
+    Args:
+        path (str): The path to the video
+        from_frame (int): The starting frame
+        to_frame (int): The ending frame
+    """
+
+    cap = cv2.VideoCapture(file_path, cv2.CAP_FFMPEG)
+
+    sample_frame = cap.read()[1]
+
+    sample_frame = resize_frame_to_224(sample_frame)
+
+    fourcc = cv2.VideoWriter_fourcc(*'XVID')
+    
+    print(f"image shape: {sample_frame.shape}")
+
+    out = cv2.VideoWriter(path, fourcc, 15.0, (int(sample_frame.shape[1]), int(sample_frame.shape[0])))
+
+    cap.set(cv2.CAP_PROP_POS_FRAMES, from_frame)
+    while cap.isOpened():
+        ret, frame = cap.read()
+        if ret:
+            frame = resize_frame_to_224(frame)
+            out.write(frame)
+        else:
+            break
+
+        ret, frame = cap.read() # skip a frame
+
+        if cap.get(cv2.CAP_PROP_POS_FRAMES) >= to_frame:
+            break
+
+    cap.release()
+    out.release()
+
+# %%
+# create vid_samples folder id not exists
+samples_output_folder = os.path.join(output_folder, "vid_samples")
+if not os.path.exists(samples_output_folder):
+    os.makedirs(samples_output_folder)
+
+last_bend_frame = None
+
+for i in range(len(df_with_accumulated_distance)):
+    df_row = df_with_accumulated_distance.iloc[i]
+
+    bend_frame = df_row['frame']
+
+    distance_columns = [col for col in df_with_accumulated_distance.columns if '_meters_before' in col]
+
+    direction = df_row['bend_direction']
+    speed = int(df_row['avg_speed'])
+    accumulated_distance = df_row['start_of_focused_points_position_accumulated_distance']
+
+    for distance_column in distance_columns:
+        distance = int(distance_column.split('_')[1].split('_')[0])        
+
+        start_frame = df_row[distance_column]
+        if start_frame < MIN_FRAME:
+            start_frame = MIN_FRAME
+
+        if last_bend_frame is not None and start_frame < last_bend_frame:
+            print(f"Skipping bend {i} {distance} meters - infringes on previous bend")
+            continue
+
+        end_frame = start_frame + video_frame_length
+        if end_frame > bend_frame:
+            print(f"run up too short for bend {i} - {direction} - {speed} MPH - {distance} meters - {end_frame - start_frame} frames")
+            continue
+
+        temp_file_path = os.path.join(samples_output_folder, f"bend_{i}_{direction}_{speed}_{distance}_meters_before.avi")
+        save_avi_from_to(temp_file_path, start_frame, end_frame)
+
+        print(f"Saved videos for bend {i} - {direction} - {speed} MPH - {distance} meters - from {start_frame} to {end_frame} {temp_file_path}")
+
+    last_bend_frame = bend_frame
 
 # %%
 
