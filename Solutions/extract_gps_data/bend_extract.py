@@ -388,14 +388,7 @@ positions[:2]
 # - improves circle fitting accuracy
 
 # %%
-# process the positions to get x, y, z
-# for position in positions:
-#     lat, lon = position['latitude'], position['longitude']
-#     lat = float(lat.split()[0])
-#     lon = float(lon.split()[0])
-#     h = float(position['height'])
-#     position['x'], position['y'], position['z'] = lat_lon_to_x_y(lat, lon, h)
-
+ 
 for position in positions:
     lat, lon = position['latitude'], position['longitude']
     position['x'], position['y'] = lat_lon_to_BGS_X_Y(lat, lon)
@@ -1039,10 +1032,7 @@ def find_first_bend_from_series(points:list[dict], min_degree_threshold:float = 
     x = [pos['x'] for pos in points]
     y = [pos['y'] for pos in points]
 
-    # x = np.convolve(x, np.ones(3) /3, mode='valid')
-    # y = np.convolve(y, np.ones(3) / 3, mode='valid')
-
-    angles = get_smoothed_sequence_angles(x, y, meters=5)
+    angles = get_smoothed_sequence_angles(x, y, meters=7)
 
     print(angles[:5])
 
@@ -1054,7 +1044,7 @@ def find_first_bend_from_series(points:list[dict], min_degree_threshold:float = 
     accumulated_sum = 0
     for i in range(len(abs_angles)):
         accumulated_sum += abs_angles[i]
-        if accumulated_sum > sum_angles * 0.8:
+        if accumulated_sum > sum_angles * 0.7:
             auto_degree_threshold = abs_angles[i]
             break
 
@@ -1068,15 +1058,19 @@ def find_first_bend_from_series(points:list[dict], min_degree_threshold:float = 
     tolerance = 3
 
     first_bend_positions = []
+    first_bend_angles_for_direction_label = []
+
     for i in range(10, len(angles)):
         sign = np.sign(angles[i])
         if abs(angles[i]) > min_degree_threshold:
             if not first_bend_found:
                 first_bend_positions.append(points[i])
+                first_bend_angles_for_direction_label.append(angles[i])
                 first_bend_found = True
                 first_bend_sign = sign
             elif first_bend_sign == sign:
                 first_bend_positions.append(points[i])
+                first_bend_angles_for_direction_label.append(angles[i])
             
             continue
 
@@ -1085,27 +1079,32 @@ def find_first_bend_from_series(points:list[dict], min_degree_threshold:float = 
                 break
             tolerance -= 1  
 
-    if not first_bend_found:
+    if not first_bend_found or len(first_bend_positions) < 3:
         print("No first bend found")
-        return None, None
+        return None, None, None
 
     # determine if the first bend is a left or right bend
+    first_bend_sign = np.sign(np.mean(first_bend_angles_for_direction_label))
+    average_bend_angle = np.mean(first_bend_angles_for_direction_label)
+
+    print("average steepness on bend:", average_bend_angle)
+    
     if first_bend_sign < 0:
         print("First bend is a left bend")
     else:
         print("First bend is a right bend")
 
-    return first_bend_positions, first_bend_sign
+    return first_bend_positions, first_bend_sign, average_bend_angle
 
 # %%
 bends_for_curve_fitting = []
 
 for i, bend in enumerate(cluster_centers):
-    records = get_points_near_a_cluster_estimated_center(bend, positions, distance_threshold=100)
+    records = get_points_near_a_cluster_estimated_center(bend, positions, distance_threshold=70)
     avg_speed = np.mean([float(pos['speed']) for pos in records])
     print(f"Bend {i}: {len(records)} points near the center - Avg Speed: {avg_speed} MPH")
 
-    focused_points, first_bend_sign = find_first_bend_from_series(records, min_degree_threshold=5)
+    focused_points, first_bend_sign, average_bend_angle = find_first_bend_from_series(records, min_degree_threshold=2)
 
     if focused_points is not None:
         start_of_focused_points = focused_points[0]
@@ -1123,6 +1122,7 @@ for i, bend in enumerate(cluster_centers):
             "focused_points": focused_points,
             "Estimated_start_frame": start_of_focused_points_frame,
             "first_bend_sign": "Left" if first_bend_sign < 0 else "Right",
+            "average_bend_angle": average_bend_angle,
             "avg_speed": avg_speed,
             "start_of_focused_points_position_accumulated_distance": start_of_focused_points['distance']
         })
@@ -1303,17 +1303,18 @@ for i, bend in enumerate(cluster_centers):
 # # Organise and Filter CSV
 
 # %%
-columns = ["frame", "bend_direction", "avg_speed", "start_of_focused_points_position_accumulated_distance"]
+columns = ["frame", "bend_direction", "avg_speed", "start_of_focused_points_position_accumulated_distance", "average_bend_angle"]
 data = []
 
 for bend in bends_for_curve_fitting:
-    data.append([bend['Estimated_start_frame'], bend['first_bend_sign'],bend['avg_speed'], bend['start_of_focused_points_position_accumulated_distance']])
+    data.append([bend['Estimated_start_frame'], bend['first_bend_sign'],bend['avg_speed'], bend['start_of_focused_points_position_accumulated_distance'], bend['average_bend_angle']])
 
 df = pd.DataFrame(data, columns=columns)
+
 df
 
 # %%
-def select_first_of_nearby_frames(df, min_accumulated_dist = 20):
+def select_first_of_nearby_frames(df, min_accumulated_dist = 30):
     """Select the first frame of nearby frames
 
     Args:
@@ -1346,7 +1347,7 @@ if bends_for_curve_fitting:
 	frames = print_frames(df['frame'].tolist())
 	for i, frame in enumerate(frames):
 		df_row = df.iloc[i]
-		output_file = os.path.join(output_folder, f"bend_{i}_frame_{df_row['frame']}_{df_row['bend_direction']}.jpg")
+		output_file = os.path.join(output_folder, f"bend_{i}_frame_{df_row['frame']}_{df_row['bend_direction']}_speed_{int(df_row['avg_speed'])}_angle_{int(df_row['average_bend_angle'])}.jpg")
 		cv2.imwrite(output_file, frame)
 else:
 	print("No bends found for curve fitting.")
@@ -1386,6 +1387,7 @@ columns = [
     "frame",
     "bend_direction",
     "avg_speed",
+    "average_bend_angle",
     "start_of_focused_points_position_accumulated_distance",
     "frame_20_meters_before",
     "frame_30_meters_before",
@@ -1415,6 +1417,7 @@ for i in range(len(df)):
         df_row['frame'],
         df_row['bend_direction'],
         df_row['avg_speed'],
+        df_row['average_bend_angle'],
         df_row['start_of_focused_points_position_accumulated_distance'],
         frame_20_meters_before,
         frame_30_meters_before,
@@ -1501,6 +1504,10 @@ samples_output_folder = os.path.join(output_folder, "vid_samples")
 if not os.path.exists(samples_output_folder):
     os.makedirs(samples_output_folder)
 
+samples_output_folder = os.path.join(samples_output_folder, "RGB")
+if not os.path.exists(samples_output_folder):
+    os.makedirs(samples_output_folder)
+
 last_bend_frame = None
 
 for i in range(len(df_with_accumulated_distance)):
@@ -1513,6 +1520,7 @@ for i in range(len(df_with_accumulated_distance)):
     direction = df_row['bend_direction']
     speed = int(df_row['avg_speed'])
     accumulated_distance = df_row['start_of_focused_points_position_accumulated_distance']
+    avg_angle = int(df_row['average_bend_angle'])
 
     for distance_column in distance_columns:
         distance = int(distance_column.split('_')[1].split('_')[0])        
@@ -1530,7 +1538,7 @@ for i in range(len(df_with_accumulated_distance)):
             print(f"run up too short for bend {i} - {direction} - {speed} MPH - {distance} meters - {end_frame - start_frame} frames")
             continue
 
-        temp_file_path = os.path.join(samples_output_folder, f"bend_{i}_{direction}_{speed}_{distance}_meters_before.avi")
+        temp_file_path = os.path.join(samples_output_folder, f"bend_{i}_{direction}_{speed}_{avg_angle}_{distance}_meters_before.avi")
         save_avi_from_to(temp_file_path, start_frame, end_frame)
 
         print(f"Saved videos for bend {i} - {direction} - {speed} MPH - {distance} meters - from {start_frame} to {end_frame} {temp_file_path}")
