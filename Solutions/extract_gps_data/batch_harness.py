@@ -5,14 +5,14 @@ from matplotlib.pylab import f
 # BATCH_FOLDER = '/home/aap9002/Stereo-Road-Curvature-Dashcam/unlabelled/sub'
 # OUTPUT_FOLDER = '/home/aap9002/Stereo-Road-Curvature-Dashcam/unlabelled/sub'
 
-# BATCH_FOLDER = '/media/aap9002/Archive 1/Project Videos'
-# OUTPUT_FOLDER = '/media/aap9002/Archive 1/Project Videos'
+BATCH_FOLDER = '/mnt/Project Videos'
+OUTPUT_FOLDER = '/home/aap9002/Downloads/hdd_batch_job'
 
-BATCH_FOLDER = '/home/aap9002/Downloads/dashcam/VIDEO'
-OUTPUT_FOLDER = '/home/aap9002/Downloads/dashcam/VIDEO'
+# BATCH_FOLDER = '/home/aap9002/Downloads/dashcam/VIDEO'
+# OUTPUT_FOLDER = '/home/aap9002/Downloads/dashcam/VIDEO'
 
-# BATCH_FOLDER = '/home/aap9002/Downloads/dashcam/PROTECTED'
-# OUTPUT_FOLDER = '/home/aap9002/Downloads/dashcam/PROTECTED'
+BATCH_FOLDER = '/home/aap9002/Downloads/dashcam/PROTECTED'
+OUTPUT_FOLDER = '/home/aap9002/Downloads/dashcam/PROTECTED'
 
 
 SCRIPT_PATH = "bend_extract.py"
