@@ -1,6 +1,6 @@
 # %% [markdown]
-# # Extract GPS data from dashcam footage
-# gps_bend_finding_with_gaussian_smoothing_and_DBSCAN_clustering_and_circle_fitting
+# # Extract GPS data from dashcam footage - Version 5
+# gps_bend_finding_with_gaussian_smoothing_and_DBSCAN_clustering_and_circle_fitting - Version 5
 
 # %%
 ids = [12]
@@ -1130,174 +1130,8 @@ for i, bend in enumerate(cluster_centers):
 # %% [markdown]
 # # Kasa Iterative Curve Fitting
 
-# %%
-# import numpy as np
-# import matplotlib.pyplot as plt
-# from scipy.optimize import least_squares
-
-# class Circle:
-#     def __init__(self, a, b, r, s, j):
-#         self.a = a  # X-coordinate of the center
-#         self.b = b  # Y-coordinate of the center
-#         self.r = r  # Radius
-#         self.s = s  # Root mean square error
-#         self.j = j  # Total number of iterations
-
-# class Data:
-#     def __init__(self, X, Y):
-#         self.X = np.array(X)
-#         self.Y = np.array(Y)
-#         self.n = len(X)
-
-# def geometric_distance(params, X, Y):
-#     a, b, r = params
-#     return np.sqrt((X - a)**2 + (Y - b)**2) - r
-
-# def Sigma(data, circle):
-#     # Compute the root mean square error (estimate of sigma)
-#     distances = np.sqrt((data.X - circle.a)**2 + (data.Y - circle.b)**2)
-#     sigma = np.sqrt(np.mean((distances - circle.r)**2))
-#     return sigma
-
-# def CircleFitIterative(data, initial_guess=None, max_iterations=100, tol=1e-9):
-#     if initial_guess is None:
-#         # Use the Kasa method to obtain an initial guess
-#         initial_guess = CircleFitByKasa(data)
-#         initial_params = [initial_guess.a, initial_guess.b, initial_guess.r]
-#     else:
-#         initial_params = initial_guess
-
-#     # Perform the iterative fitting using Levenberg–Marquardt algorithm
-#     result = least_squares(geometric_distance, initial_params, args=(data.X, data.Y), max_nfev=max_iterations, ftol=tol, xtol=tol, gtol=tol)
-
-#     # Extract the optimized parameters
-#     a, b, r = result.x
-#     s = Sigma(data, Circle(a, b, r, 0, 0))
-#     j = result.nfev  # Number of function evaluations
-
-#     return Circle(a, b, r, s, j)
-
-# def CircleFitByKasa(data):
-#     # Center the data points
-#     Xi = data.X - np.mean(data.X)
-#     Yi = data.Y - np.mean(data.Y)
-#     Zi = Xi**2 + Yi**2
-
-#     # Compute moments
-#     Mxx = np.mean(Xi**2)
-#     Myy = np.mean(Yi**2)
-#     Mxy = np.mean(Xi * Yi)
-#     Mxz = np.mean(Xi * Zi)
-#     Myz = np.mean(Yi * Zi)
-
-#     # Solve the system of equations using Cholesky factorization
-#     G11 = np.sqrt(Mxx)
-#     G12 = Mxy / G11
-#     G22 = np.sqrt(Myy - G12**2)
-
-#     D1 = Mxz / G11
-#     D2 = (Myz - D1 * G12) / G22
-
-#     # Compute parameters of the fitting circle
-#     C = D2 / G22 / 2
-#     B = (D1 - G12 * C) / G11 / 2
-
-#     # Assemble the output
-#     a = B + np.mean(data.X)
-#     b = C + np.mean(data.Y)
-#     r = np.sqrt(B**2 + C**2 + Mxx + Myy)
-#     s = Sigma(data, Circle(a, b, r, 0, 0))
-#     j = 0  # Number of iterations (not applicable for Kasa's method)
-
-#     return Circle(a, b, r, s, j)
-
-# f_bend = bends_for_curve_fitting[1]['points']
-# order_by_time = sorted(f_bend, key=lambda x: time_stamp_to_seconds(x['time']))
-# X = [float(pos['x']) for pos in order_by_time]
-# Y = [float(pos['y']) for pos in order_by_time]
-
-# diff_x = np.diff(X)
-# diff_y = np.diff(Y)
-# angles = np.arctan2(diff_x, diff_y)
-# angles = np.arctan2(np.sin(angles), np.cos(angles)) # normalize angles
-# angles = np.degrees(angles)
-
-# angles = np.diff(angles)
-
-# # smooth angles with gaussian filter
-# angles = np.convolve(angles, np.ones(3) / 3, mode='same')
-
-
-# # apply median filter
-# angles = apply_median_filter(angles, 10)
-
-# # plot angles
-# plt.plot(angles)
-# plt.show()
-
-# min_degree = 0.5
-
-# print(f"Found {len(X)} points before filtering")
-# print(angles[:10])
-
-# angle_threshold_mask = [np.abs(angles) > min_degree]
-# print(angle_threshold_mask[:10])
-
-# X_a = np.array(X[1:-1])[np.abs(angles) > min_degree]
-# Y_a = np.array(Y[1:-1])[np.abs(angles) > min_degree]
-
-# # # ignore after sign change
-# # angles_temp = angles[np.abs(angles) > min_degree]
-# # angle_sign = np.sign(angles_temp)
-# # initial_angle = angle_sign[1]
-
-# # X_a = []
-# # Y_a = []
-
-# # for i in range(1, min(len(X)-1, len(angles))):
-# #     if np.abs(angles[i-1]) > min_degree:
-# #         if not (angle_sign[i-1] != initial_angle):
-# #             break
-# #         X_a.append(X[i])
-# #         Y_a.append(Y[i])
-
-
-# print(f"Found {len(X_a)} points after filtering")
-
-# data = Data(X_a,Y_a)
-# fitted_circle = CircleFitIterative(data)
-
-
-# print(f"Center: ({fitted_circle.a}, {fitted_circle.b})")
-# print(f"Radius: {fitted_circle.r}")
-# print(f"RMS Error: {fitted_circle.s}")
-# print(f"Iterations: {fitted_circle.j}")
-
-# plt.scatter(X, Y)
-# plt.scatter(fitted_circle.a, fitted_circle.b, color='red')
-# plt.scatter(X_a, Y_a, color='green')
-# plt.text(
-#     X[0],
-#     Y[0],
-#     'Segment Start',
-#     fontsize=9,
-#     color='black'
-# )
-
-# plt.text(
-#     X[-1],
-#     Y[-1],
-#     'Segment End',
-#     fontsize=9,
-#     color='black'
-# )
-
-# circle = plt.Circle((fitted_circle.a, fitted_circle.b), fitted_circle.r, color='r', fill=False)
-
-# plt.gca().add_artist(circle)
-# plt.axis('equal')
-# plt.show()
-
+# %% [markdown]
+# I decided to use the mean angle on the bend due to time constraints, but did run some experiments with online sourced code and the results were good. I will talk about this approach but since I did not write my own code for this I will not include it in the final submission.
 
 # %% [markdown]
 # # Organise and Filter CSV
@@ -1456,6 +1290,53 @@ def resize_frame_to_224(frame):
     return cv2.resize(frame, (224, 224))
 
 # %%
+def get_dense_optic_flow(initial_frame, next_frame):
+    """Get the dense optic flow between two frames
+
+    Args:
+        initial_frame (np.ndarray): The initial frame
+        next_frame (np.ndarray): The next frame
+
+    Returns:
+        np.ndarray: The dense optic flow
+    """
+    
+    initial_frame_gray = cv2.cvtColor(initial_frame, cv2.COLOR_BGR2GRAY)
+    next_frame_gray = cv2.cvtColor(next_frame, cv2.COLOR_BGR2GRAY)
+
+    # reduce image size
+    initial_frame_gray = cv2.resize(initial_frame_gray, (int(initial_frame_gray.shape[1] * 0.5), int(initial_frame_gray.shape[0] * 0.5)))
+    next_frame_gray = cv2.resize(next_frame_gray, (int(next_frame_gray.shape[1] * 0.5), int(next_frame_gray.shape[0] * 0.5)))
+
+    flow = cv2.calcOpticalFlowFarneback(initial_frame_gray, next_frame_gray, None, 0.5, 3, 15, 3, 5, 1.2, 0)
+
+    magnitude, angle = cv2.cartToPolar(flow[..., 0], flow[..., 1])
+
+    magnitude = magnitude * np.cos(angle)
+
+    magnitude = cv2.normalize(magnitude, None, 0, 255, cv2.NORM_MINMAX)
+    magnitude = cv2.convertScaleAbs(magnitude)
+
+    angle = np.cos(angle)
+    
+    angle = cv2.normalize(angle, None, 0, 180, cv2.NORM_MINMAX)
+    angle = cv2.convertScaleAbs(angle)
+
+
+    return magnitude, angle
+
+# dummy_frame = frames[0]
+# next_frame = frames[3]
+
+# magnitude, angle = get_dense_optic_flow(dummy_frame, next_frame)
+
+# plt.imshow(next_frame, cmap='gray')
+
+# plt.imshow(magnitude, cmap='gray')
+
+# plt.imshow(angle, cmap='gray')
+
+# %%
 MIN_FRAME = 0
 MAX_FRAME = total_frames
 video_frame_length = 60
@@ -1499,6 +1380,53 @@ def save_avi_from_to(path, from_frame, to_frame):
     out.release()
 
 # %%
+def save_optic_flow_avi_from_to(path, from_frame, to_frame):
+    """Save a video from a given frame to another
+
+    Args:
+        path (str): The path to the video
+        from_frame (int): The starting frame
+        to_frame (int): The ending frame
+    """
+
+    cap = cv2.VideoCapture(file_path, cv2.CAP_FFMPEG)
+
+    last_frame = cap.read()[1]
+
+    sample_frame = resize_frame_to_224(last_frame)
+
+    fourcc = cv2.VideoWriter_fourcc(*'XVID')
+    
+    print(f"image shape: {sample_frame.shape}")
+
+    out = cv2.VideoWriter(path, fourcc, 15.0, (int(sample_frame.shape[1]), int(sample_frame.shape[0])))
+
+    cap.set(cv2.CAP_PROP_POS_FRAMES, from_frame)
+    while cap.isOpened():
+        ret, frame = cap.read()
+        if ret:
+            next_frame = frame
+            magnitude, angle = get_dense_optic_flow(last_frame, next_frame)
+
+            new_image = np.zeros((magnitude.shape[0], magnitude.shape[1], 3), dtype=np.uint8)
+            new_image[..., 0] = magnitude
+            new_image[..., 1] = angle    
+
+            new_image = resize_frame_to_224(new_image)     
+
+            out.write(new_image)
+        else:
+            break
+
+        ret, frame = cap.read() # skip a frame
+
+        if cap.get(cv2.CAP_PROP_POS_FRAMES) >= to_frame:
+            break
+
+    cap.release()
+    out.release()
+
+# %%
 # create vid_samples folder id not exists
 samples_output_folder = os.path.join(output_folder, "vid_samples")
 if not os.path.exists(samples_output_folder):
@@ -1507,6 +1435,10 @@ if not os.path.exists(samples_output_folder):
 samples_output_folder = os.path.join(samples_output_folder, "RGB")
 if not os.path.exists(samples_output_folder):
     os.makedirs(samples_output_folder)
+
+samples_OF_output_folder = os.path.join(output_folder, "vid_samples", "OpticFlow")
+if not os.path.exists(samples_OF_output_folder):
+    os.makedirs(samples_OF_output_folder)
 
 last_bend_frame = None
 
@@ -1538,10 +1470,11 @@ for i in range(len(df_with_accumulated_distance)):
             print(f"run up too short for bend {i} - {direction} - {speed} MPH - {distance} meters - {end_frame - start_frame} frames")
             continue
 
-        temp_file_path = os.path.join(samples_output_folder, f"bend_{i}_{direction}_{speed}_{avg_angle}_{distance}_meters_before.avi")
+        temp_file_path = os.path.join(samples_output_folder, f"bend_{i}_{start_frame}_{end_frame}_{direction}_{speed}_{avg_angle}_{distance}_meters_before.avi")
         save_avi_from_to(temp_file_path, start_frame, end_frame)
-
         print(f"Saved videos for bend {i} - {direction} - {speed} MPH - {distance} meters - from {start_frame} to {end_frame} {temp_file_path}")
+        save_optic_flow_avi_from_to(temp_file_path.replace("RGB", "OpticFlow"), start_frame, end_frame)
+        print(f"Saved optic flow videos for bend {i} - {direction} - {speed} MPH - {distance} meters - from {start_frame} to {end_frame}")
 
     last_bend_frame = bend_frame
 
