@@ -6,8 +6,8 @@ Project Report: TBC
 
 Project Log: [View](https://alansnotes.notion.site/typ)
 
-[Camera System](https://github.com/AAP9002/Third-Year-Project/tree/main/camera-system) -> Data Cleaning -> Model Design -> Model evaluation -> Refinements
+## Processing Pipeline
+![mermaid-diagram-2025-03-15-231811](https://github.com/user-attachments/assets/950cec56-baea-4d7c-9008-4954c76fa68b)
 
-[Progress Log](https://github.com/AAP9002/Third-Year-Project/blob/main/progress-log.md)
-
+## Initial Proposed Pipeline
 ![pipeline](./Pipeline.jpg)
