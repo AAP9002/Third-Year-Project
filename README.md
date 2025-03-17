@@ -7,7 +7,7 @@ Project Report: TBC
 Project Log: [View](https://alansnotes.notion.site/typ)
 
 ## Processing Pipeline
-![mermaid-diagram-2025-03-15-231811](https://github.com/user-attachments/assets/950cec56-baea-4d7c-9008-4954c76fa68b)
+![mermaid-diagram-2025-03-17-112751](https://github.com/user-attachments/assets/ce85aac2-722f-4375-9af3-9efb371d4c27)
 
 ## Initial Proposed Pipeline
 ![pipeline](./Pipeline.jpg)
