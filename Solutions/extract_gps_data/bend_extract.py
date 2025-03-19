@@ -113,9 +113,8 @@ def time_stamp_to_seconds(time_stamp:str):
     hours = int(time_stamp[:2])
     minutes = int(time_stamp[2:4])
     seconds = int(time_stamp[4:6])
-    milliseconds = int(time_stamp[7:])
-
-    return (hours*60*60 + minutes*60 + seconds)*1000 + milliseconds
+    seconds = float(time_stamp[4:])
+    return hours * 3600 + minutes * 60 + seconds
 
 # %% [markdown]
 # # Lat and Long to X and Y
@@ -162,11 +161,8 @@ def lat_lon_to_BGS_X_Y(lat:float, lon:float):
     """
     # GPS - EPSG:4326  https://epsg.io/4326
     # BGS - EPSG:27700 https://epsg.io/27700
-    transformer = Transformer.from_crs("EPSG:4326", "EPSG:27700")
-    bgs_format =  transformer.transform(lat, lon)
-
-    northing = bgs_format[0]
-    easting = bgs_format[1]
+    transformer = Transformer.from_crs("EPSG:4326", "EPSG:27700", always_xy=True)
+    easting, northing = transformer.transform(lon, lat)
 
     return easting, northing
 
@@ -197,6 +193,31 @@ if FORCE_INPUT_AND_OUTPUT_PATHS:
     output_folder = FORCED_output_folder
 else:
     file_path, output_folder = get_file_and_output_folder(ids[0])
+
+# %%
+import cv2
+import numpy as np
+
+def get_frame_timestamps(video_path):
+    cap = cv2.VideoCapture(video_path)
+    frame_times = []
+    while True:
+        ret, frame = cap.read()
+        if not ret:
+            break
+        # Get timestamp in seconds (CAP_PROP_POS_MSEC returns milliseconds)
+        ts = cap.get(cv2.CAP_PROP_POS_MSEC) / 1000.0
+        frame_times.append(ts)
+    cap.release()
+    return frame_times
+
+# Usage:
+frame_times = get_frame_timestamps(file_path)
+print(f"Extracted {len(frame_times)} frame timestamps.")
+
+print(f"First 5 timestamps: {frame_times[:5]}")
+print(f"Last 5 timestamps: {frame_times[-5:]}")
+
 
 # %%
 # !firefox {file_path} # display the video
@@ -467,7 +488,7 @@ plt.title(f'Valid GPS positions > {min_speed_filter} MPH')
 
 # %%
 # Get start and end time for frame estimation
-positions = sorted(positions, key=lambda x: x['time'])
+positions = sorted(positions, key=lambda x: time_stamp_to_seconds(x['time']))
 STARTING_TIME = time_stamp_to_seconds(positions[0]['time'])
 print(f"Starting time: {STARTING_TIME}")
 
@@ -504,7 +525,7 @@ def filter_invalid_and_low_mph_records(positions):
 
 # %%
 positions = filter_invalid_and_low_mph_records(positions)
-positions = sorted(positions, key=lambda x: x['time']) # sort by time
+positions = sorted(positions, key=lambda x: time_stamp_to_seconds(x['time']))
 
 print(f"{len(positions)} positions after filtering")
 positions[:2]
@@ -629,10 +650,14 @@ def get_smoothed_sequence_angles(x_pos:list[float], y_pos:list[float], meters:in
         dot = np.dot(before_vector, after_vector)
         cross = np.cross(before_vector, after_vector)  # Cross product magnitude (z-component)
         angle = np.arctan2(cross, dot)
+
+        # flip sign to match intuitive angles
+        angle = -angle
         
         angles.append(angle)
 
     angles_rad = np.array(angles)
+
     complex_angles = np.exp(1j * angles_rad)
 
     # smooth angles with gaussian filter
@@ -758,7 +783,6 @@ plt.ylabel("y")
 plt.xlabel("x")
 plt.legend()
 plt.axis('equal')
-plt.gca().invert_xaxis()
 
 
 plt.savefig(os.path.join(output_folder, "bends.png"))
@@ -794,9 +818,12 @@ def time_stamp_to_frame_number(time_stamp:str, STARTING_TIME:int = STARTING_TIME
         return 0
     
     # estimate the frame number
-    predict_frame_number = int((diff / total_time) * total_frames)
+    # predict_frame_number = int((diff / total_time) * total_frames)
     
-    return predict_frame_number
+    # return predict_frame_number
+ 
+    closest_frame = min(frame_times, key=lambda x: abs(x - diff))
+    return frame_times.index(closest_frame)
 
 def get_closest_position_based_on_lat_lon(x:float, y:float, positions:list[dict]):
     """Get the closest position based on x and y
@@ -949,9 +976,7 @@ def plot_bend(bend_name:str, cluster_center:list[float], points:list[dict], focu
 
     plt.xlabel('x')
     plt.ylabel('y')
-    plt.title(f'GPS positions near {bend_name}')
-    # flip x axis
-    plt.gca().invert_xaxis()
+    plt.title(bend_name)
     plt.axis('equal')
 
     plt.savefig(os.path.join(output_folder, f"{bend_name}.png"))
@@ -1037,16 +1062,19 @@ def find_first_bend_from_series(points:list[dict], min_degree_threshold:float = 
     print(angles[:5])
 
     # set threshold to largest 20% of angles
+    # abs_angles = np.abs(angles)
+    # abs_angles = np.sort(abs_angles)
+    # sum_angles = np.sum(abs_angles)
+    # auto_degree_threshold = 0
+    # accumulated_sum = 0
+    # for i in range(len(abs_angles)):
+    #     accumulated_sum += abs_angles[i]
+    #     if accumulated_sum > sum_angles * 0.7:
+    #         auto_degree_threshold = abs_angles[i]
+    #         break
+
     abs_angles = np.abs(angles)
-    abs_angles = np.sort(abs_angles)
-    sum_angles = np.sum(abs_angles)
-    auto_degree_threshold = 0
-    accumulated_sum = 0
-    for i in range(len(abs_angles)):
-        accumulated_sum += abs_angles[i]
-        if accumulated_sum > sum_angles * 0.7:
-            auto_degree_threshold = abs_angles[i]
-            break
+    auto_degree_threshold = np.percentile(abs_angles, 85)
 
     print("automatic threshold:", auto_degree_threshold)
 
@@ -1100,19 +1128,24 @@ def find_first_bend_from_series(points:list[dict], min_degree_threshold:float = 
 bends_for_curve_fitting = []
 
 for i, bend in enumerate(cluster_centers):
-    records = get_points_near_a_cluster_estimated_center(bend, positions, distance_threshold=70)
+    records = get_points_near_a_cluster_estimated_center(bend, positions, distance_threshold=100)
     avg_speed = np.mean([float(pos['speed']) for pos in records])
-    print(f"Bend {i}: {len(records)} points near the center - Avg Speed: {avg_speed} MPH")
 
     focused_points, first_bend_sign, average_bend_angle = find_first_bend_from_series(records, min_degree_threshold=2)
+    
+    if focused_points is None:
+        name = f"Bend {i}: {len(records)} points near the center - Avg Speed: {int(avg_speed)} MPH - No first bend found"
+    else:
+        name = f"Bend {i}: {len(records)} points near the center - Avg Speed: {int(avg_speed)} MPH - First bend: {int(average_bend_angle)} {"Left" if first_bend_sign < 0 else "Right"}"
 
+    
     if focused_points is not None:
+        focused_points = sorted(focused_points, key=lambda x: time_stamp_to_seconds(x['time']))
         start_of_focused_points = focused_points[0]
         start_of_focused_points_frame = time_stamp_to_frame_number(start_of_focused_points['time'])
         print(f"Start of focused points: {start_of_focused_points_frame}")
 
-    plot_bend(f"Bend {i}", bend, records, focused_points)
-
+    plot_bend(name, bend, records, focused_points)
     if len(records) > 0 and focused_points is not None:
         start_of_focused_points = focused_points[0]
         print(f"start_of_focused_points_position_accumulated_distance: {start_of_focused_points['distance']}")
@@ -1153,21 +1186,24 @@ def select_first_of_nearby_frames(df, min_accumulated_dist = 30):
 
     Args:
         df (pd.DataFrame): The dataframe
-        min_accumulated_dist (int, optional): The minimum distance. Defaults to 100.
+        min_accumulated_dist (int, optional): The minimum distance.
 
     Returns:
         pd.DataFrame: The selected dataframe
     """
     selected = []
+    last_start_of_focused_points_position_accumulated_distance = 0
     for i in range(len(df)):
         if i == 0:
-            selected.append(df.iloc[i])
+            last_start_of_focused_points_position_accumulated_distance = df.iloc[i]['start_of_focused_points_position_accumulated_distance']
+            selected.append(df.iloc[i].values)
             continue
 
-        if df.iloc[i]['start_of_focused_points_position_accumulated_distance'] - selected[-1]['start_of_focused_points_position_accumulated_distance'] > min_accumulated_dist:
-            selected.append(df.iloc[i])
+        if df.iloc[i]['start_of_focused_points_position_accumulated_distance'] - last_start_of_focused_points_position_accumulated_distance > min_accumulated_dist:
+            selected.append(df.iloc[i].values)
 
-    return pd.DataFrame(selected)
+    new_df = pd.DataFrame(selected, columns=df.columns)
+    return new_df
 
 # %%
 df = select_first_of_nearby_frames(df)
@@ -1175,6 +1211,12 @@ df
 
 # %% [markdown]
 # ### Visualise
+
+# %% [markdown]
+# ## Get frame number of x meters before start of bend
+
+# %%
+accumulated_position_distance = [pos['distance'] for pos in positions]
 
 # %%
 if bends_for_curve_fitting:
@@ -1187,12 +1229,6 @@ else:
 	print("No bends found for curve fitting.")
 	
 
-
-# %% [markdown]
-# ## Get frame number of x meters before start of bend
-
-# %%
-accumulated_position_distance = [pos['distance'] for pos in positions]
 
 # %%
 def find_frame_nearest_point_to_given_accumulated_distance(positions:list[float], distance:float):
@@ -1290,7 +1326,10 @@ def resize_frame_to_224(frame):
     return cv2.resize(frame, (224, 224))
 
 # %%
-def get_dense_optic_flow(initial_frame, next_frame):
+from pydoc import cli
+
+
+def get_dense_optic_flow_magnitude_and_angle(initial_frame, next_frame):
     """Get the dense optic flow between two frames
 
     Args:
@@ -1325,14 +1364,53 @@ def get_dense_optic_flow(initial_frame, next_frame):
 
     return magnitude, angle
 
+def get_dense_optic_flow_u_v_flow(initial_frame, next_frame): 
+    initial_frame_gray = cv2.cvtColor(initial_frame, cv2.COLOR_BGR2GRAY)
+    next_frame_gray = cv2.cvtColor(next_frame, cv2.COLOR_BGR2GRAY)
+
+    # reduce image size
+    initial_frame_gray = cv2.resize(initial_frame_gray, (int(initial_frame_gray.shape[1] * 0.5), int(initial_frame_gray.shape[0] * 0.5)))
+    next_frame_gray = cv2.resize(next_frame_gray, (int(next_frame_gray.shape[1] * 0.5), int(next_frame_gray.shape[0] * 0.5)))
+
+    flow = cv2.calcOpticalFlowFarneback(initial_frame_gray, next_frame_gray, None, 0.5, 3, 15, 3, 5, 1.2, 0)
+
+    u = flow[..., 0]
+    v = flow[..., 1]
+
+    # normalise with hard clipping to fit 0 - 255 range for storing in AVI file
+    max_val, min_val = 255, -255
+
+    # cap at min max and divide by 2
+    u = np.clip(u, min_val, max_val) // 2
+    v = np.clip(v, min_val, max_val) // 2
+
+    # midpoint normalize
+    mid = 255//2
+
+    u = (u + mid).astype(np.uint8)
+    v = (v + mid).astype(np.uint8)
+
+    # ensure hard clipping to 0 - 255
+    u = np.clip(u, 0, 255)
+    v = np.clip(v, 0, 255)
+    
+    # print(f"u range: {np.min(u)} - {np.max(u)}")
+    # print(f"v range: {np.min(v)} - {np.max(v)}")
+
+    return u, v
+
 # dummy_frame = frames[0]
 # next_frame = frames[3]
 
-# magnitude, angle = get_dense_optic_flow(dummy_frame, next_frame)
+# magnitude, angle = get_dense_optic_flow_magnitude_and_angle(dummy_frame, next_frame)
+# u_change, v_change = get_dense_optic_flow_u_v_flow(dummy_frame, next_frame)
 
-# plt.imshow(next_frame, cmap='gray')
+# print(f"u range: {np.min(u_change)} - {np.max(u_change)}")
+# print(f"v range: {np.min(v_change)} - {np.max(v_change)}")
 
-# plt.imshow(magnitude, cmap='gray')
+# plt.imshow(u_change, cmap='gray')
+
+# plt.imshow(v_change, cmap='gray')
 
 # plt.imshow(angle, cmap='gray')
 
@@ -1390,6 +1468,10 @@ def save_optic_flow_avi_from_to(path, from_frame, to_frame):
     """
 
     cap = cv2.VideoCapture(file_path, cv2.CAP_FFMPEG)
+    cap.set(cv2.CAP_PROP_POS_FRAMES, from_frame)
+
+    # compensate for the skipped frame
+    to_frame = min(to_frame+1, MAX_FRAME)
 
     last_frame = cap.read()[1]
 
@@ -1401,18 +1483,32 @@ def save_optic_flow_avi_from_to(path, from_frame, to_frame):
 
     out = cv2.VideoWriter(path, fourcc, 15.0, (int(sample_frame.shape[1]), int(sample_frame.shape[0])))
 
-    cap.set(cv2.CAP_PROP_POS_FRAMES, from_frame)
+    
     while cap.isOpened():
         ret, frame = cap.read()
         if ret:
             next_frame = frame
-            magnitude, angle = get_dense_optic_flow(last_frame, next_frame)
+            # magnitude, angle = get_dense_optic_flow(last_frame, next_frame)
 
-            new_image = np.zeros((magnitude.shape[0], magnitude.shape[1], 3), dtype=np.uint8)
-            new_image[..., 0] = magnitude
-            new_image[..., 1] = angle    
+            # new_image = np.zeros((magnitude.shape[0], magnitude.shape[1], 3), dtype=np.uint8)
+            # new_image[..., 0] = magnitude
+            # new_image[..., 1] = angle    
 
-            new_image = resize_frame_to_224(new_image)     
+            # new_image = resize_frame_to_224(new_image)     
+            u_change, v_change = get_dense_optic_flow_u_v_flow(last_frame, next_frame)
+
+            new_image = np.ones((u_change.shape[0], u_change.shape[1], 3), dtype=np.uint8)
+            new_image[..., 0] = u_change
+            new_image[..., 1] = v_change
+
+            new_image = resize_frame_to_224(new_image)
+
+            last_frame = next_frame
+
+            # set last channel to grayscale of original frame
+            frame = resize_frame_to_224(frame)
+            new_image[..., 2] = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
 
             out.write(new_image)
         else:
