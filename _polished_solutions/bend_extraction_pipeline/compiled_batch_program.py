@@ -2,6 +2,7 @@
 # # Selected code for report comparison pipeline
 
 # %%
+# !pip install opencv-python matplotlib pandas numpy scikit-learn pyproj kneed --quiet
 
 # %%
 import os
@@ -18,8 +19,6 @@ from kneed import KneeLocator
 from pyproj import Transformer
 
 distances = [10,20,30,40,50,75,100]
-
-plt.ioff()
 
 # %% [markdown]
 # # File Handling and CLI Support
@@ -108,6 +107,7 @@ def get_frame_rate(filepath: str) -> float:
 # Lets keep these as a simple relative environment
 OUTPUT_PATH = './'
 INPUT_FILE = '43.MP4'
+# INPUT_FILE = '250222_084809_021_RH.MP4'
 
 # %% [markdown]
 # CLI override on OUTPUT_PATH and INPUT_FILE
@@ -320,6 +320,10 @@ for i in range(len(nmea_strings)-1):
     if record:
         nmea_records.append(record)
 print(f"Parsed {len(nmea_records)} NMEA records from {len(nmea_strings)} strings.")
+
+if len(nmea_records) == 0:
+    raise ValueError(f"No valid NMEA records found in {INPUT_FILE}.")
+
 
 nmea_records[:2]  # Display the first 5 records
 
@@ -698,9 +702,26 @@ plot_location_with_angles(
 )
 
 # %%
+# median_filter = 10
+# def apply_median_filter(data, window_size):
+#     """Apply a median filter to the data.
+
+#     Args:
+#         data (list): The data to filter.
+#         window_size (int): The size of the median filter window.
+
+#     Returns:
+#         list: The filtered data.
+#     """
+#     return pd.Series(data).rolling(window=window_size, center=True).median().fillna(method='bfill').fillna(method='ffill').tolist()
+
+# df_10hz['smoothed_angles'] = apply_median_filter(df_10hz['smoothed_angles'], median_filter)
+
+# %%
 # 1) Pick a numerical threshold (e.g. 95th percentile of your angles)
 angles = np.abs(df_10hz['smoothed_angles'])
-cluster_threshold_percentile = 80
+
+cluster_threshold_percentile = 90
 cluster_threshold = np.percentile(angles, cluster_threshold_percentile)
 print(f"Using threshold = {cluster_threshold:.2f}°")
 
@@ -735,6 +756,45 @@ clusters['avg_angle'] = clusters['avg_angle'].round(2)
 clusters
 
 # %%
+MAX_GAP = 30  # number of indices (or tune this as meters or seconds)
+merged_clusters = []
+prev_cluster = None
+
+for _, row in clusters.iterrows():
+    if prev_cluster is None:
+        prev_cluster = row
+        continue
+    
+    # Check if this cluster is close enough to previous one
+    start_accumulated_distance = df_10hz['accumulated_distance'][row['start_idx']]
+    end_accumulated_distance = df_10hz['accumulated_distance'][prev_cluster['end_idx']] 
+
+    if abs(start_accumulated_distance - end_accumulated_distance) <= MAX_GAP:
+        # Merge clusters
+        prev_cluster['end_idx'] = row['end_idx']
+
+        prev_cluster['avg_angle'] = (
+            prev_cluster['avg_angle'] * prev_cluster['n_points'] +
+            row['avg_angle'] * row['n_points']
+        ) / (prev_cluster['n_points'] + row['n_points'])
+
+        prev_cluster['n_points'] += row['n_points']
+    else:
+        merged_clusters.append(prev_cluster)
+        prev_cluster = row
+
+if prev_cluster is not None:
+    merged_clusters.append(prev_cluster)
+
+clusters = pd.DataFrame(merged_clusters).reset_index(drop=True)
+
+# make start_idx and end_idx intagers
+clusters['start_idx'] = clusters['start_idx'].astype(int)
+clusters['end_idx'] = clusters['end_idx'].astype(int)
+
+clusters
+
+# %%
 def calculate_average_speed_for_range(speeds, start, end):
     """Calculate the average speed for a given range of indices.
 
@@ -751,8 +811,8 @@ def calculate_average_speed_for_range(speeds, start, end):
 clusters['avg_speed'] = [
     calculate_average_speed_for_range(
         df_10hz['speed'].values, 
-        clusters['start_idx'][i], 
-        clusters['end_idx'][i] + 1
+        int(clusters['start_idx'][i]), 
+        int(clusters['end_idx'][i])
     ) for i in range(len(clusters))
 ]
 
@@ -762,6 +822,7 @@ clusters['avg_speed'] =  clusters['avg_speed'].round(2)
 clusters
 
 # %%
+
 def plot_location_with_angles(
     x, y, angles,
     title=None,
@@ -793,13 +854,22 @@ def plot_location_with_angles(
 
     if clusters is not None and 'start_idx' in clusters:
         starts = clusters['start_idx'].values
+        ends = clusters['end_idx'].values
         ax.scatter(
             np.array(x)[starts],
             np.array(y)[starts],
             marker='X',
-            c='k',
-            s=100,
+            c='b',
+            s=80,
             label='Cluster start'
+        )
+        ax.scatter(
+            np.array(x)[ends],
+            np.array(y)[ends],
+            marker='H',
+            c='y',
+            s=80,
+            label='Cluster ends',
         )
         ax.legend(loc='upper right')    
     
@@ -863,7 +933,7 @@ for i, row in clusters.iterrows():
     direction = "left" if row['avg_angle'] > 0 else "right"
     formatted_angle = f"{abs(row['avg_angle']):.2f}"
 
-    output_frame(row['start_frame'], INPUT_FILE, f"{FILE_NAME}_bend_{i}_{direction}_{formatted_angle}")
+    output_frame(row['start_frame'], INPUT_FILE, f"bend_{i}_{direction}_{formatted_angle}")
 
 # %% [markdown]
 # # Calculate frame at distance
@@ -1114,9 +1184,10 @@ for i, row in clusters.iterrows():
     # os.path.join(samples_output_folder, f"bend_{i}_{start_frame}_{end_frame}_{direction}_{speed}_{avg_angle}_{distance}_meters_before.avi")
     for s_i in range(len(distance_frames)):
         sample_start_frame = distance_frames[s_i]
+        sample_distance = distances[s_i]
 
         if sample_start_frame == -1:
-            print(f"Skipping bend {i} as frame {s_i} is -1")
+            print(f"Skipping bend {i} as distance {sample_distance} is -1")
             continue
 
         sample_end_frame = sample_start_frame + SAMPLE_VIDEO_LENGTH
@@ -1125,7 +1196,6 @@ for i, row in clusters.iterrows():
             print(f"Skipping bend {i} as end frame {sample_end_frame} is greater than total frame count {TOTAL_FRAME_COUNT}")
             continue
 
-        sample_distance = distances[s_i]
 
         sample_file_name = f"bend_{i}_{sample_start_frame}_{sample_end_frame}_{_direction}_{_speed}_{_avg_angle}_{sample_distance}_meters_before.avi"
 
