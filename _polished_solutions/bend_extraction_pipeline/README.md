@@ -1,6 +1,6 @@
 Run to disable plot windows whilst running batch processing
 ```bash
-export MPLBACKEND=Agg
+    export MPLBACKEND=Agg
 ```
 
 Update the desired path to the input and output directories in `batch_harness.py`. The input directory should contain the raw data files, and the output directory will be where the processed data will be saved.
