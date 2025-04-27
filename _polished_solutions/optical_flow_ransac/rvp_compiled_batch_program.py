@@ -13,7 +13,11 @@
 
 # %%
 RUN_WITH_YOLO_SEG = True
-file = "10 sec video 1 mototrway crash h.264.mp4"
+# file = "10 sec video 1 mototrway crash h.264.mp4"
+# file = "250222_080729_006_FH.MP4"
+# file = "test_20s_video.MP4"
+file = "test_15s_video.MP4"
+
 START_FRAME = 0
 RUN_UP = False
 RUN_UP_FRAMES = 40
@@ -21,6 +25,7 @@ END_FRAME = None
 OUTPUT_FOLDER = None
 
 STANDARD_RESOLUTION = (2560, 1440)
+Main_Cam_Calibration_path = "main_cam_calibration.npz"
 
 # %%
 # !pip install opencv-python numpy matplotlib ultralytics --quiet
@@ -114,7 +119,9 @@ if RESOLUTION != STANDARD_RESOLUTION:
 else:
     print(f"Video resolution is {RESOLUTION}, as expected.")
 
-# END_FRAME = 80 # Manual test override
+# START_FRAME = 490
+
+# END_FRAME = 550 # Manual test override
 
 print(f'Processing file: {file}')
 print(f'Total number of frames: {total_number_of_frames}')
@@ -139,6 +146,43 @@ print(f'Total number of frames to process: {total_number_of_frames}')
 # ### Frame handling
 
 # %%
+MTX = None
+DIST = None
+NEW_CAMERA_MTX = None
+ROI = None
+
+if os.path.exists(Main_Cam_Calibration_path):
+    data = np.load(Main_Cam_Calibration_path)
+    MTX = data['mtx']
+    DIST = data['dist']
+
+    # INITIAL FRAME
+    cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
+    ret, img = cap.read()
+    if not ret:
+        raise ValueError("Could not read the first frame of the video.")
+    h, w = img.shape[:2]
+    NEW_CAMERA_MTX, ROI = cv2.getOptimalNewCameraMatrix(MTX, DIST, (w, h), 1, (w, h))
+
+    print("Camera calibration loaded")
+
+def undistort(img, newcameramtx=NEW_CAMERA_MTX, mtx=MTX, dist=DIST, roi=ROI):
+    """
+    Undistort the image using the camera calibration parameters.
+    """
+    if mtx is None or dist is None:
+        return img
+    else:
+        # print("Undistorting image")
+        # undistort
+        dst = cv2.undistort(img, mtx, dist, None, newcameramtx)
+        x, y, w, h = roi
+        dst = dst[y:y+h, x:x+w]
+        dst = cv2.resize(dst, (img.shape[1], img.shape[0]))
+        return dst
+
+
+# %%
 def preprocess_frame(frame):
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     return gray
@@ -148,6 +192,10 @@ def get_frame(cap, frame_number):
     success, frame = cap.read()
     if not success:
         raise ValueError(f"Failed to read frame at position {frame_number}")
+    
+    # Undistort the frame
+    if file.endswith("FH.MP4"):
+        frame = undistort(frame)
     
     # Resize frame to standard resolution
     if RESOLUTION != STANDARD_RESOLUTION:
@@ -195,14 +243,14 @@ def get_vehicle_mask(_frame):
     # get the first result (the only one in this case)
     if len(results) == 0:
         print("No results found.")
-        return np.ones((_frame.shape[0], _frame.shape[1]), dtype=np.uint8)
+        return np.zeros((_frame.shape[0], _frame.shape[1]), dtype=np.uint8)
     
     result = results[0]
     # result.save(filename="result.jpg")
 
     if result.masks is None or result.boxes is None:
-        print("No masks or boxes found.")
-        return np.ones((_frame.shape[0], _frame.shape[1]), dtype=np.uint8)
+        # print("No masks or boxes found.")
+        return np.zeros((_frame.shape[0], _frame.shape[1]), dtype=np.uint8)
     
     masks = result.masks.data.cpu().numpy()  
     class_ids = result.boxes.cls.cpu().numpy().astype(int)
@@ -218,6 +266,11 @@ def get_vehicle_mask(_frame):
                 (_frame.shape[1], _frame.shape[0]),  # (width, height)
                 interpolation=cv2.INTER_NEAREST
             )
+
+            # ignore if mask uses over 50% of the image (when it selects the host car)
+            if np.sum(resized_mask.astype(np.uint8)) / (resized_mask.shape[0] * resized_mask.shape[1]) > 0.5:
+                continue
+
             _mask = np.logical_or(_mask, resized_mask).astype(np.uint8)
 
     vehicle_mask = _mask.astype(np.uint8)  # 0 or 1
@@ -246,9 +299,9 @@ def is_point_on_vehicle(point, mask):
 
 # %%
 # params for Shi-Tomasi corner detection
-feature_params = dict( maxCorners = 40, # 50 for non grid based
+feature_params = dict( maxCorners = 2, # 50 for non grid based
                        qualityLevel = 0.3,
-                       minDistance = 20,
+                       minDistance = 30,
                        blockSize = 7,)
 
 # Parameters for lucas kanade optical flow
@@ -257,12 +310,15 @@ lk_params = dict( winSize  = (15, 15),
                   criteria = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 10, 0.03))
 
 # minimum displacement
-MINIMUM_TRACKED_POINTS = 400
+MINIMUM_TRACKED_POINTS = 300
 MINIMUM_DISPLACEMENT = 1
-MAXIMUM_TRAJECTORY_LENGTH = 50
+MAXIMUM_TRAJECTORY_LENGTH = 25
 
 # R-VP parameters
-THRESHOLD_REMOVE_SHORT_TRAJECTORIES = 40
+THRESHOLD_REMOVE_SHORT_TRAJECTORIES = 12
+
+# %%
+THRESHOLD_REMOVE_SHORT_TRAJECTORIES
 
 # %% [markdown]
 # corner detection mask to select new points from a distance (Region of interest)
@@ -275,8 +331,9 @@ mask = np.ones((frame_height, frame_width), dtype=np.uint8)
 
 # apply mask to select new points from a distance (Region of interest)
 mask[-200:] = 0
-mask[:, :700] = 0
-mask[:, -700:] = 0
+mask[:200] = 0
+mask[:, :600] = 0
+mask[:, -600:] = 0
 
 masked_bgr = cv2.bitwise_and(frame, frame, mask=mask)
 masked_bgr = cv2.cvtColor(masked_bgr, cv2.COLOR_BGR2RGB)
@@ -323,33 +380,67 @@ def split_into_grid(frame, grid_size):
 
     return grid
 
-def get_points_of_frame(frame_number):
-    _, frame = get_frame(cap, frame_number) # using processed frame, not original
-    frame = cv2.bitwise_and(frame, frame, mask=mask)
+# def get_points_of_frame(frame_number):
+#     _, frame = get_frame(cap, frame_number) # using processed frame, not original
+#     frame = cv2.bitwise_and(frame, frame, mask=mask)
 
-    grid = split_into_grid(frame, (4, 4))
+#     grid = split_into_grid(frame, (4, 4))
 
-    corner_list = []
+#     corner_list = []
 
-    for g in grid:
-        # shi-tomasi corner detection
-        new_corners = cv2.goodFeaturesToTrack(g[2], **feature_params)
-        if new_corners is None:
-            continue
+#     for g in grid:
+#         # shi-tomasi corner detection
+#         new_corners = cv2.goodFeaturesToTrack(g[2], **feature_params)
+#         if new_corners is None:
+#             continue
         
-        for corner in new_corners:
-            corner[0][0] += g[1]
-            corner[0][1] += g[0]
-            corner_list.append(corner[0])
+#         for corner in new_corners:
+#             corner[0][0] += g[1]
+#             corner[0][1] += g[0]
+#             corner_list.append(corner[0])
 
-    corner_list = np.array(corner_list, dtype=np.float32)
-    corner_list = corner_list.reshape(-1, 1, 2)
+#     corner_list = np.array(corner_list, dtype=np.float32)
+#     corner_list = corner_list.reshape(-1, 1, 2)
 
-    return corner_list
+#     return corner_list
+
+def get_points_of_frame(frame_number):
+    # 1) grab the GREY frame
+    _, gray = get_frame(cap, frame_number)
+
+    # 2) split that full grey image into your 4×4 grid
+    grid = split_into_grid(gray, (20, 20))
+
+    all_pts = []
+    for y0, x0, cell in grid:
+        # 3) detect up to  maxCorners points _within each cell_
+        pts = cv2.goodFeaturesToTrack(cell,
+                                      mask=None,  # no mask here!
+                                      **feature_params)
+        if pts is None: 
+            continue
+
+        # 4) re-offset the cell’s (0,0) back to full-frame coords
+        for p in pts:
+            p[0][0] += x0
+            p[0][1] += y0
+            all_pts.append(p[0])
+
+    # apply mask of roi
+    all_pts = np.array(all_pts, dtype=np.float32)
+    all_pts = all_pts.reshape(-1, 2)
+    all_pts = [p for p in all_pts if is_point_on_vehicle(p, mask)]
+    all_pts = np.array(all_pts, dtype=np.float32)
+    all_pts = all_pts.reshape(-1, 1, 2)
+
+
+
+
+    return np.array(all_pts, dtype=np.float32).reshape(-1,1,2)
 
 
 # %%
-frame = get_frame(cap, 0)[0]
+frame = get_frame(cap, 20)[0]
 corners = get_points_of_frame(0)
 
 print(f'Example frame {0} with {len(corners)} corners')
@@ -361,10 +452,10 @@ for corner in corners:
     cv2.circle(frame, (int(x), int(y)), 3, 255, -1)
 
 # draw (8,8) grid
-for i in range(0, frame.shape[0], frame.shape[0]//4):
+for i in range(0, frame.shape[0], frame.shape[0]//20):
     cv2.line(frame, (0, i), (frame.shape[1], i), 255, 1)
 
-for i in range(0, frame.shape[1], frame.shape[1]//4):
+for i in range(0, frame.shape[1], frame.shape[1]//20):
     cv2.line(frame, (i, 0), (i, frame.shape[0]), 255, 1)
     
 plt.imshow(frame)
@@ -387,6 +478,7 @@ def get_frame_with_trajectories(frame_number, trajectories):
     if RUN_WITH_YOLO_SEG:
         # Draw the mask on the original frame with 50% opacity
         vehicle_mask = get_vehicle_mask(original_frame)  # values 0 or 1
+        
         colored_mask = np.zeros_like(original_frame)
         colored_mask[vehicle_mask == 1] = (0, 0, 255)  
         original_frame = cv2.addWeighted(original_frame, 1.0, colored_mask, 0.5, 0)
@@ -478,16 +570,37 @@ def remove_trajectories_not_diverging_from_center_x_axis(trajectories, center_x)
     """
     filtered_trajectories = {}
     for start_position, points in trajectories.items():
+        # print(f"Trajectory {start_position}: {points}")
         if len(points) > 1:
             # Calculate the distance from the first point to the last point
             # print(f"Trajectory {start_position}: {points}")
-            x_diff = points[-1][0] - points[0][0]
 
-            center_x_diff = points[-1][0] - center_x
+            if len(points) >= 5:
+                x_diff = points[-1][0] - points[-5][0]
+                y_diff = points[-1][1] - points[-5][1]
 
-            # Check if the trajectory is diverging from the center
-            if (x_diff< 0 and center_x_diff < 0) or (x_diff > 0 and center_x_diff > 0):
-                filtered_trajectories[start_position] = points
+                if len(points) > 10:
+                    x_diff = points[-1][0] - points[-10][0]
+                    y_diff = points[-1][1] - points[-10][1]
+
+                    if np.sqrt(x_diff**2 + y_diff**2) < (MINIMUM_DISPLACEMENT*7):
+                    # print(f"Trajectory {start_position} is not diverging from center x axis.")
+                        continue
+
+                # check if in last 200 pixels from edge
+                if points[-1][0] < 300 or points[-1][0] > (frame_width - 300):
+                    continue
+                if points[-1][1] < 200 or points[-1][1] > (frame_height - 200):
+                    continue
+
+                # if points[-1][0] < center_x:
+                #     if x_diff < 0:
+                #         continue
+                # else:
+                #     if x_diff > 0:
+                #         continue
+
+            filtered_trajectories[start_position] = points
     return filtered_trajectories
 
 # %% [markdown]
@@ -528,7 +641,6 @@ def get_all_frame_trajectories(start_frame=0, end_frame=None):
 
         # get a tracked point using the last tracked position as the key
         new_trajectories = {}
-
 
         for new, old in zip(good_new, good_old):
             start_position = tuple(old.ravel())  # Use the original position as the key
@@ -597,10 +709,10 @@ plt.plot(x, y)
 example_frame = 280
 
 if END_FRAME is not None:
-    example_frame = 50
+    example_frame = START_FRAME + 50
 
 # filter related frame for short trajectories
-trajectories = all_frame_trajectories[example_frame]
+trajectories = all_frame_trajectories[example_frame-START_FRAME]
 ignore_short_history_trajectories = {start_position: points for start_position, points in trajectories.items() if len(points) > THRESHOLD_REMOVE_SHORT_TRAJECTORIES}
 
 # display frame with trajectories
@@ -646,6 +758,10 @@ def find_vanishing_point(line_segments, iterations=500, threshold=10,  inlier_ra
     
     slopes = np.array(slopes)
     intercepts = np.array(intercepts)
+
+    if total_segments < 2:
+        print("Not enough line segments to find a vanishing point.")
+        return None, 0
     
     for _ in range(iterations):
         # Randomly select two line segments
@@ -712,8 +828,12 @@ for start_position, points in ignore_short_history_trajectories.items():
 ransac_vectors = np.array(ransac_vectors)
 
 vanishing_point, inliers_count = find_vanishing_point(ransac_vectors)
-print("Vanishing Point:", vanishing_point)
-print("Number of Inliers:", inliers_count)
+
+if vanishing_point is None:
+    print("No vanishing point found.")
+else:
+    print("Vanishing point found at:", vanishing_point)
+    print("Number of inliers:", inliers_count)
 
 # %%
 frame = get_frame_with_trajectories(example_frame, ignore_short_history_trajectories)
@@ -751,12 +871,16 @@ for i in range(total_number_of_frames):
         all_vp.append(np.array([0, 0]))
         continue
     vanishing_point, inliers_count = find_vanishing_point(ransac_vectors)
-    all_vp.append(vanishing_point)
+    if vanishing_point is None:
+        print("No vanishing point found.")
+        all_vp.append(np.array([0, 0]))
+    else:
+        all_vp.append(vanishing_point)
 
 all_vp = np.array(all_vp)
 
 # %%
-def output_video_of_R_VP(VP, trajectories, _start_frame, _end_frame, filename):
+def output_video_of_R_VP(VP, trajectories, _start_frame, _end_frame, filename , average_vp=None, median_vp=None):
     video = VideoBuilder(filename, 30)
     print(f"Outputting video to {filename} from {_start_frame} to {_end_frame}")
     for i in range(_end_frame - _start_frame):
@@ -766,6 +890,13 @@ def output_video_of_R_VP(VP, trajectories, _start_frame, _end_frame, filename):
         frame = get_frame_with_trajectories(frame_number, trajectories[i])
         if vanishing_point is not None:
             frame = cv2.circle(frame, tuple(vanishing_point.astype(int)), 10, (0, 255, 0), 5)
+
+        if average_vp is not None:
+            frame = cv2.circle(frame, tuple(average_vp.astype(int)), 10, (255, 0, 0), 5)
+
+        if median_vp is not None:
+            frame = cv2.circle(frame, tuple(median_vp.astype(int)), 10, (0, 0, 255), 5)
+            
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         video.add_frame(frame)
     video.stop_recording()
@@ -789,15 +920,39 @@ def get_average_vanishing_point(vp_list):
     Returns:
         np.array: average vanishing point
     """
-    if len(vp_list) == 0:
+
+    vp_without_zeros = [vp for vp in vp_list if not np.array_equal(vp, np.array([0, 0]))]
+
+    if len(vp_without_zeros) == 0:
         return None
-    return np.mean(vp_list, axis=0)
+    return np.mean(vp_without_zeros, axis=0)
+
+def get_median_vanishing_point(vp_list):
+    """
+    Calculate the average vanishing point from a list of vanishing points.
+
+    Args:
+        vp_list (list): list of vanishing points
+
+    Returns:
+        np.array: average vanishing point
+    """
+
+    vp_without_zeros = [vp for vp in vp_list if not np.array_equal(vp, np.array([0, 0]))]
+
+    if len(vp_without_zeros) == 0:
+        return None
+    return np.median(vp_without_zeros, axis=0)
 
 
 vp_after_run_up_removal = all_vp[RUN_UP_FRAMES:]
 trajectories_after_run_up_removal = all_frame_trajectories[RUN_UP_FRAMES:]
 
 average_vp = get_average_vanishing_point(vp_after_run_up_removal)
+median_vp = get_median_vanishing_point(vp_after_run_up_removal)
+
+original_average_vp = copy.deepcopy(average_vp)
+original_median_vp = copy.deepcopy(median_vp)
 
 if STANDARD_RESOLUTION != RESOLUTION:
     print(f"Average vanishing point was: {average_vp}")
@@ -805,10 +960,15 @@ if STANDARD_RESOLUTION != RESOLUTION:
     average_vp_y = average_vp[1] * (RESOLUTION[1] / STANDARD_RESOLUTION[1])
     average_vp = np.array([average_vp_x, average_vp_y])
     print("Average vanishing point after scaling:", average_vp)
+    median_vp_x = median_vp[0] * (RESOLUTION[0] / STANDARD_RESOLUTION[0])
+    median_vp_y = median_vp[1] * (RESOLUTION[1] / STANDARD_RESOLUTION[1])
+    median_vp = np.array([median_vp_x, median_vp_y])
+    print("Median vanishing point after scaling:", median_vp)
 else:
     print("Resolution as expected: ", RESOLUTION)
 
-average_vp
+print("Average vanishing point: ", average_vp)
+print("Median vanishing point: ", median_vp)
 
 # %%
 # average_vp_file is {file_name}_{start_frame}_{end_frame}_average_vp.txt
@@ -818,12 +978,20 @@ with open(average_vp_file, 'w') as f:
     f.write(f'{average_vp[0]}, {average_vp[1]}')
     f.write('\n')
 
+median_vp_file = f'{OUTPUT_FOLDER}/{START_FRAME_ADJUSTED}_{END_FRAME}_median_vp.txt'
+with open(median_vp_file, 'w') as f:
+    f.write(f'{median_vp[0]}, {median_vp[1]}')
+    f.write('\n')
+
 # %%
 # print(f'Outputting video with trajectories to {OUTPUT_FOLDER}/{START_FRAME}_{END_FRAME}_trajectories.avi')
 # output_video_of_trajectories(all_frame_trajectories, f'{OUTPUT_FOLDER}/{START_FRAME}_{END_FRAME}_trajectories.avi')
 
 # %%
-output_video_of_R_VP(vp_after_run_up_removal, trajectories_after_run_up_removal, START_FRAME_ADJUSTED, END_FRAME, f'{OUTPUT_FOLDER}/{START_FRAME_ADJUSTED}_{END_FRAME}_vp.avi')
+output_video_of_R_VP(vp_after_run_up_removal, trajectories_after_run_up_removal, START_FRAME_ADJUSTED, END_FRAME, f'{OUTPUT_FOLDER}/{START_FRAME_ADJUSTED}_{END_FRAME}_vp.avi', average_vp=original_average_vp, median_vp=original_median_vp)
+
+# %%
+
 
 # %%
 

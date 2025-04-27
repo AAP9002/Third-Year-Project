@@ -1,10 +1,14 @@
 import os
 import pandas as pd
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
+from sympy import comp
 
 SCRIPT_PATH = "rvp_compiled_batch_program.py"
 
 VIDEO_BANK_PATH = '/mnt/Video Bank'
 DATASET_FOLDER = '/home/aap9002/Downloads/RGB_OF_LARGE (Copy)'
+
 
 
 def get_video_files(folder):
@@ -31,7 +35,7 @@ def build_command(video_file, unique_video_output_folder, start_frame=0, end_fra
     os.makedirs(unique_video_output_folder, exist_ok=True)
     return f"python {SCRIPT_PATH} --i '{video_file}' --o '{unique_video_output_folder}' --s {start_frame} --e {end_frame} -r"
 
-def process_clusters_from_csv(cluster_csv, video_file_paths):
+def process_clusters_from_csv(cluster_csv, video_file_paths, MIN_SPEED=15):
     # Read the CSV file
     columns = ['start_idx','end_idx','avg_angle','n_points','avg_speed','start_frame','10 meters frame','20 meters frame','30 meters frame','40 meters frame','50 meters frame','75 meters frame','100 meters frame']
     cluster_csv_df = pd.read_csv(cluster_csv, usecols=columns)
@@ -53,6 +57,7 @@ def process_clusters_from_csv(cluster_csv, video_file_paths):
         print(f"video file not found for {video_file_name}")
         return
     
+    
     output_folder_name = os.path.join(os.path.dirname(cluster_csv), f'_rvp')
     if os.path.exists(output_folder_name):
         print(f"skipping {output_folder_name} as it already exists")
@@ -66,6 +71,11 @@ def process_clusters_from_csv(cluster_csv, video_file_paths):
         # Get the video file name  is parent directory of the CSV file
         if video_file_path is None:
             print(f"skipping {video_file_name} as video file not found")
+            continue
+
+        # check min speed
+        if row['avg_speed'] < MIN_SPEED:
+            print(f"skipping {video_file_name} as avg speed is less than 10 mph")
             continue
 
         for distance in [10, 20, 30, 40, 50, 75, 100]:
@@ -92,10 +102,29 @@ def main():
     video_file_paths = get_video_files(VIDEO_BANK_PATH)
     cluster_csvs = get_clusters_csv_file_paths(DATASET_FOLDER)
 
-    for cluster_csv in cluster_csvs:
-        print(f"processing cluster csv file: {cluster_csv}")
-        process_clusters_from_csv(cluster_csv, video_file_paths)
-        break
+    # for cluster_csv in cluster_csvs:
+    #     print(f"processing cluster csv file: {cluster_csv}")
+    #     process_clusters_from_csv(cluster_csv, video_file_paths)
+    #     break
+
+    with ThreadPoolExecutor(max_workers=4) as executor:
+        futures = { executor.submit(process_clusters_from_csv, csv, video_file_paths): csv
+                    for csv in cluster_csvs }
+        
+        total_jobs = len(futures)
+        print(f"total jobs: {total_jobs}")
+
+        completed_jobs = 0
+
+        for future in as_completed(futures):
+            csv = futures[future]
+            try:
+                print(f"processing cluster csv file: {csv}")
+                completed_jobs += 1
+                print(f"completed jobs: {completed_jobs} of {total_jobs}")            
+                future.result()
+            except Exception as exc:
+                print(f"{csv} failed: {exc}")
 
     # print(video_file_paths)
 
