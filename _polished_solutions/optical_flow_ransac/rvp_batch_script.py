@@ -35,7 +35,7 @@ def build_command(video_file, unique_video_output_folder, start_frame=0, end_fra
     os.makedirs(unique_video_output_folder, exist_ok=True)
     return f"python {SCRIPT_PATH} --i '{video_file}' --o '{unique_video_output_folder}' --s {start_frame} --e {end_frame} -r"
 
-def process_clusters_from_csv(cluster_csv, video_file_paths, MIN_SPEED=15):
+def process_clusters_from_csv(cluster_csv, video_file_paths, MIN_SPEED=15, MIN_ABS_ANGLE=10):
     # Read the CSV file
     columns = ['start_idx','end_idx','avg_angle','n_points','avg_speed','start_frame','10 meters frame','20 meters frame','30 meters frame','40 meters frame','50 meters frame','75 meters frame','100 meters frame']
     cluster_csv_df = pd.read_csv(cluster_csv, usecols=columns)
@@ -75,7 +75,12 @@ def process_clusters_from_csv(cluster_csv, video_file_paths, MIN_SPEED=15):
 
         # check min speed
         if row['avg_speed'] < MIN_SPEED:
-            print(f"skipping {video_file_name} as avg speed is less than 10 mph")
+            print(f"skipping {video_file_name} as avg speed is less than {MIN_SPEED} mph")
+            continue
+
+        # check min abs angle
+        if abs(row['avg_angle']) < MIN_ABS_ANGLE:
+            print(f"skipping {video_file_name} as avg angle is less than {MIN_ABS_ANGLE} degrees")
             continue
 
         for distance in [10, 20, 30, 40, 50, 75, 100]:
