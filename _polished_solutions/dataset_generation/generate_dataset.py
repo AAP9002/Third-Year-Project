@@ -6,8 +6,12 @@ import pandas as pd
 VIDEO_BANK = '/mnt/Video Bank'
 DATASET_PATH = '/home/aap9002/Downloads/RGB_OF_LARGE (with rvps) (Copy)'
 
+Main_Cam_Calibration_path='main_cam_calibration.npz'
+
 MIN_FRAME = 0
 SAMPLE_VIDEO_LENGTH = 60
+
+STANDARD_RESOLUTION = (3840, 2160) # 4K resolution
 
 distances = [10,20,30,40,50,75,100]
 
@@ -16,6 +20,37 @@ distances = [10,20,30,40,50,75,100]
 ## NARROW RGB
 ## WIDE OPTICAL FLOW
 ## NARROW OPTICAL FLOW
+
+MTX = None
+DIST = None
+NEW_CAMERA_MTX = None
+ROI = None
+
+if os.path.exists(Main_Cam_Calibration_path):
+    data = np.load(Main_Cam_Calibration_path)
+    MTX = data['mtx']
+    DIST = data['dist']
+
+    w = STANDARD_RESOLUTION[0]
+    h = STANDARD_RESOLUTION[1]
+    NEW_CAMERA_MTX, ROI = cv2.getOptimalNewCameraMatrix(MTX, DIST, (w, h), 1, (w, h))
+
+    print("Camera calibration loaded")
+
+def undistort(img, newcameramtx=NEW_CAMERA_MTX, mtx=MTX, dist=DIST, roi=ROI):
+    """
+    Undistort the image using the camera calibration parameters.
+    """
+    if mtx is None or dist is None:
+        return img
+    else:
+        # print("Undistorting image")
+        # undistort
+        dst = cv2.undistort(img, mtx, dist, None, newcameramtx)
+        x, y, w, h = roi
+        dst = dst[y:y+h, x:x+w]
+        dst = cv2.resize(dst, (img.shape[1], img.shape[0]))
+        return dst
 
 
 ### Get video files
@@ -162,6 +197,8 @@ def save_rgb_avi_from_to(INPUT_FILE, OUTPUT_FILE, from_frame, to_frame, rvp_reco
     if not ret:
         raise ValueError(f"Could not read frame {from_frame} from {INPUT_FILE}")
     
+    sample_frame = undistort(sample_frame)
+    
     if rvp_record is not None:
         sample_frame = clip_around_roi(sample_frame, rvp_record)
 
@@ -177,6 +214,7 @@ def save_rgb_avi_from_to(INPUT_FILE, OUTPUT_FILE, from_frame, to_frame, rvp_reco
     while cap.isOpened():
         ret, frame = cap.read()
         if ret:
+            frame = undistort(frame)
             if rvp_record is not None:
                 frame = clip_around_roi(frame, rvp_record)
             frame = resize_frame_to_224(frame)
@@ -209,6 +247,8 @@ def save_optic_flow_avi_from_to(INPUT_FILE, OUTPUT_FILE, from_frame, to_frame, m
 
     last_frame = cap.read()[1]
 
+    last_frame = undistort(last_frame)
+
     if rvp_record is not None:
         last_frame = clip_around_roi(last_frame, rvp_record)
 
@@ -224,6 +264,7 @@ def save_optic_flow_avi_from_to(INPUT_FILE, OUTPUT_FILE, from_frame, to_frame, m
     while cap.isOpened():
         ret, frame = cap.read()
         if ret:
+            frame = undistort(frame)
             if rvp_record is not None:
                 frame = clip_around_roi(frame, rvp_record)
 
@@ -408,7 +449,6 @@ def main():
         # Process the cluster dataframe
         process_cluster_df(df, related_video_path, output_folder_name)
 
-        break
 
 if __name__ == "__main__":
     main()
