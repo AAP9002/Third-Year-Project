@@ -2,13 +2,10 @@ import os
 import pandas as pd
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-from sympy import comp
-
 SCRIPT_PATH = "rvp_compiled_batch_program.py"
 
 VIDEO_BANK_PATH = '/mnt/Video Bank'
 DATASET_FOLDER = '/home/aap9002/Downloads/RGB_OF_LARGE (Copy)'
-
 
 
 def get_video_files(folder):
@@ -35,7 +32,7 @@ def build_command(video_file, unique_video_output_folder, start_frame=0, end_fra
     os.makedirs(unique_video_output_folder, exist_ok=True)
     return f"python {SCRIPT_PATH} --i '{video_file}' --o '{unique_video_output_folder}' --s {start_frame} --e {end_frame} -r"
 
-def process_clusters_from_csv(cluster_csv, video_file_paths, MIN_SPEED=15, MIN_ABS_ANGLE=10):
+def process_clusters_from_csv(cluster_csv, video_file_paths, MIN_SPEED=15, MIN_ABS_ANGLE=5):
     # Read the CSV file
     columns = ['start_idx','end_idx','avg_angle','n_points','avg_speed','start_frame','10 meters frame','20 meters frame','30 meters frame','40 meters frame','50 meters frame','75 meters frame','100 meters frame']
     cluster_csv_df = pd.read_csv(cluster_csv, usecols=columns)
