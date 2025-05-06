@@ -4,6 +4,9 @@
 
 **Project Log**: [Notion Link](https://alansnotes.notion.site/Third-Year-Project-Logs-13d57d67a5bf805a8a6ff1cfe588fc89?pvs=4)
 
+**Presentation Slides**:[Reveal.js](https://aap9002.github.io/Road-Bend-Classification-Presentation/)
+
+
 ---
 
 ### 🎯 Overview
