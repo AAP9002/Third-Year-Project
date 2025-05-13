@@ -2,10 +2,11 @@
 
 **Project Report**: [Overleaf Link](https://www.overleaf.com/read/xwtwzrkkstnt#bc3052)
 
+**Presentation**: [Video](https://youtu.be/B2moIPvdwpo)
+
+**Presentation Slides**: [Reveal.js](https://aap9002.github.io/Road-Bend-Classification-Presentation/)
+
 **Project Log**: [Notion Link](https://alansnotes.notion.site/Third-Year-Project-Logs-13d57d67a5bf805a8a6ff1cfe588fc89?pvs=4)
-
-**Presentation Slides**:[Reveal.js](https://aap9002.github.io/Road-Bend-Classification-Presentation/)
-
 
 ---
 
@@ -15,7 +16,7 @@ This project aims to enhance **Advanced Driver Assistance Systems (ADAS)** by pr
 
 ---
 
-### 💡 Hypotheses
+### 💡 Ideas Explored
 
 This research investigates the effectiveness of human-inspired perception cues in machine-based road understanding. Specifically:
 
@@ -23,7 +24,7 @@ This research investigates the effectiveness of human-inspired perception cues i
 - 👁️ **H2**: Optical flow representations, inspired by human visual motion processing, improve classification performance compared to static RGB imagery.
 - 🎯 **H3**: Focused regions around the Road Vanishing Point (R-VP), emulating human gaze, result in better or more efficient classification performance.
 
-Each hypothesis is evaluated using separate datasets (RGB vs. Optical Flow, Wide vs. Narrow views) and a consistent (2+1)D CNN architecture.
+Each investigation is evaluated using separate datasets (RGB vs. Optical Flow, Wide vs. Narrow views) and a consistent (2+1)D CNN architecture.
 
 ---
 
