@@ -1,12 +1,16 @@
 # 📘 Third Year Project – Road Bend Classification
 
-**Project Report**: [Overleaf Link](https://www.overleaf.com/read/xwtwzrkkstnt#bc3052)
+
+
+**Project Report**: https://web.goodnotes.com/s/E7eURQ8qxiTAM3rVRXc6xg
 
 **Presentation**: [Video](https://youtu.be/B2moIPvdwpo)
 
 **Presentation Slides**: [Reveal.js](https://aap9002.github.io/Road-Bend-Classification-Presentation/)
 
 **Project Log**: [Notion Link](https://alansnotes.notion.site/Third-Year-Project-Logs-13d57d67a5bf805a8a6ff1cfe588fc89?pvs=4)
+
+**Project Overleaf**: [Overleaf Link](https://www.overleaf.com/read/xwtwzrkkstnt#bc3052)
 
 ---
 
